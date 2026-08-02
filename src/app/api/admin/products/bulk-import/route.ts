@@ -7,15 +7,15 @@ const MAX_ZIP_SIZE = 8 * 1024 * 1024; // 8MB
 const STORAGE_BUCKET = 'product-images';
 
 interface ProductJson {
-  slug: string;
+  slug?: string;
   id?: string;
-  title: string;
-  description: string;
-  price: number | string;
-  images: string[];
-  condition: string;
-  category: string;
-  brand: string;
+  title?: string;
+  description?: string;
+  price?: number | string;
+  images?: string[];
+  condition?: string;
+  category?: string;
+  brand?: string;
   payeeEmail?: string;
   payee_email?: string;
   checkoutLink?: string;
@@ -36,11 +36,51 @@ interface ImportResult {
   productSlug?: string;
   originalSlug?: string;
   slugModified?: boolean;
+  warnings?: string[];
   error?: string;
 }
 
 function isRemoteUrl(url: string): boolean {
   return /^https?:\/\//i.test(url);
+}
+
+function getString(value: unknown, fallback = ''): string {
+  return typeof value === 'string' && value.trim() ? value.trim() : fallback;
+}
+
+function slugify(value: string): string {
+  return value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+function isImageFile(entryName: string): boolean {
+  return /\.(?:jpe?g|png|webp|gif|avif)$/i.test(entryName);
+}
+
+function discoverImages(
+  normalizedDir: string,
+  zipEntries: AdmZip.IZipEntry[]
+): string[] {
+  const imageNames = zipEntries
+    .filter((entry) => {
+      if (entry.isDirectory) return false;
+
+      const entryPath = entry.entryName.replace(/\\/g, '/');
+      if (!isImageFile(entryPath)) return false;
+
+      if (normalizedDir === '') {
+        return !entryPath.includes('/') || entryPath.startsWith('images/');
+      }
+
+      return entryPath.startsWith(`${normalizedDir}/`);
+    })
+    .map((entry) => entry.entryName.replace(/\\/g, '/').split('/').pop())
+    .filter((imageName): imageName is string => Boolean(imageName));
+
+  return [...new Set(imageNames)];
 }
 
 async function uploadImageToSupabase(
@@ -157,11 +197,20 @@ async function processProductFromZip(
     };
   }
 
+  const warnings: string[] = [];
+
   // Read and parse product.json
   let productData: ProductJson;
   try {
     const jsonContent = zip.readAsText(productJsonEntry);
-    productData = JSON.parse(jsonContent);
+    const parsedData = JSON.parse(jsonContent);
+    productData = parsedData && typeof parsedData === 'object' && !Array.isArray(parsedData)
+      ? parsedData as ProductJson
+      : {};
+
+    if (productData !== parsedData) {
+      warnings.push('product.json was not an object, so neutral defaults were used');
+    }
   } catch (error: any) {
     return {
       success: false,
@@ -169,14 +218,14 @@ async function processProductFromZip(
     };
   }
 
-  // Validate required fields
-  const baseSlug = productData.slug?.trim();
-  if (!baseSlug) {
-    return {
-      success: false,
-      error: 'Missing required field: slug',
-    };
-  }
+  // Missing catalog fields are allowed. Derive a stable slug when one was not supplied.
+  const suppliedSlug = getString(productData.slug);
+  const fallbackSlugSource = getString(productData.id)
+    || normalizedDir.split('/').filter(Boolean).pop()
+    || getString(productData.title)
+    || 'imported-product';
+  const baseSlug = suppliedSlug || slugify(fallbackSlugSource) || 'imported-product';
+  if (!suppliedSlug) warnings.push(`Missing slug; generated "${baseSlug}"`);
 
   // Generate a unique slug (will append -2, -3, etc. if needed)
   let slug: string;
@@ -191,31 +240,21 @@ async function processProductFromZip(
     };
   }
 
-  const checkoutLink = productData.checkoutLink || productData.checkout_link;
-  if (!checkoutLink) {
-    return {
-      success: false,
-      error: `Missing required field: checkoutLink for product ${slug}`,
-    };
-  }
+  const checkoutLink = getString(productData.checkoutLink || productData.checkout_link);
+  if (!checkoutLink) warnings.push('Missing checkout link; imported with an empty value');
 
-  const requiredFields = ['title', 'description', 'price', 'condition', 'category', 'brand'];
-  for (const field of requiredFields) {
-    if (!productData[field as keyof ProductJson]) {
-      return {
-        success: false,
-        error: `Missing required field: ${field} for product ${slug}`,
-      };
+  // Use the declared image list when present, otherwise discover images in the ZIP.
+  let imageEntries = Array.isArray(productData.images)
+    ? productData.images.filter((imageName): imageName is string => typeof imageName === 'string' && Boolean(imageName.trim()))
+    : [];
+
+  if (imageEntries.length === 0) {
+    imageEntries = discoverImages(normalizedDir, zipEntries);
+    if (imageEntries.length > 0) {
+      warnings.push('Missing images array; discovered image files in the ZIP automatically');
+    } else {
+      warnings.push('No images supplied; imported with an empty image list');
     }
-  }
-
-  // Validate and process images
-  const imageEntries = productData.images || [];
-  if (!Array.isArray(imageEntries) || imageEntries.length === 0) {
-    return {
-      success: false,
-      error: `No images found in images array for product ${slug}`,
-    };
   }
 
   // Upload images to Supabase
@@ -294,10 +333,8 @@ async function processProductFromZip(
         uploadedImageUrls.push(imageName);
         continue;
       }
-      return {
-        success: false,
-        error: `Image file not found in ZIP: ${imageName} for product ${slug}. Looked in: ${normalizedDir || 'root'}, images/ folder, and by filename.`,
-      };
+      warnings.push(`Image file not found and was skipped: ${imageName}`);
+      continue;
     }
 
     try {
@@ -319,35 +356,41 @@ async function processProductFromZip(
     }
   }
 
-  if (uploadedImageUrls.length === 0) {
-    return {
-      success: false,
-      error: `No images were successfully processed for product ${slug}`,
-    };
+  // Prepare product data for Supabase
+  const parsedPrice = typeof productData.price === 'string'
+    ? Number.parseFloat(productData.price)
+    : productData.price;
+  const hasValidPrice = typeof parsedPrice === 'number' && Number.isFinite(parsedPrice);
+  const price = hasValidPrice ? parsedPrice : 0;
+  if (!hasValidPrice) {
+    warnings.push('Missing or invalid price; defaulted to 0');
   }
 
-  // Prepare product data for Supabase
-  const price = typeof productData.price === 'string' ? parseFloat(productData.price) : productData.price;
-  if (Number.isNaN(price) || price <= 0) {
-    return {
-      success: false,
-      error: `Invalid price for product ${slug}`,
-    };
-  }
+  const title = getString(productData.title, 'Untitled Product');
+  const description = getString(productData.description);
+  const condition = getString(productData.condition, 'Not specified');
+  const category = getString(productData.category, 'Uncategorized');
+  const brand = getString(productData.brand, 'Unbranded');
+
+  if (!getString(productData.title)) warnings.push('Missing title; defaulted to "Untitled Product"');
+  if (!getString(productData.description)) warnings.push('Missing description; imported as empty');
+  if (!getString(productData.condition)) warnings.push('Missing condition; defaulted to "Not specified"');
+  if (!getString(productData.category)) warnings.push('Missing category; defaulted to "Uncategorized"');
+  if (!getString(productData.brand)) warnings.push('Missing brand; defaulted to "Unbranded"');
 
   const productPayload = {
     id: slug, // Use the new unique slug as ID to prevent duplicate primary key errors
     slug,
-    title: productData.title,
-    description: productData.description,
+    title,
+    description,
     price,
     images: uploadedImageUrls,
-    condition: productData.condition,
-    category: productData.category,
-    brand: productData.brand,
-    payee_email: (productData.payeeEmail || productData.payee_email || '').trim() || 'admin@Cokaro.com',
+    condition,
+    category,
+    brand,
+    payee_email: getString(productData.payeeEmail || productData.payee_email, 'admin@cokaro.com'),
     checkout_link: checkoutLink,
-    currency: productData.currency || 'USD',
+    currency: getString(productData.currency, 'USD'),
     rating: productData.rating || 0,
     review_count: productData.review_count || productData.reviewCount || 0,
     reviews: productData.reviews || [],
@@ -374,6 +417,7 @@ async function processProductFromZip(
       productSlug: slug,
       originalSlug: baseSlug,
       slugModified,
+      warnings,
     };
   } catch (error: any) {
     return {
@@ -504,4 +548,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-

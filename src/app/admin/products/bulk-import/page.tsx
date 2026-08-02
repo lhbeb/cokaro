@@ -9,6 +9,7 @@ import AdminLayout from '@/components/AdminLayout';
 interface ImportResult {
   success: boolean;
   productSlug?: string;
+  warnings?: string[];
   error?: string;
 }
 
@@ -199,7 +200,7 @@ export default function BulkImportPage() {
             <div className="flex items-start gap-2">
               <span className="font-semibold text-[#0046be]">2.</span>
               <div>
-                <strong>product.json structure:</strong> Must include slug, title, description, price, images (array of filenames), condition, category, brand, checkoutLink.
+                <strong>product.json structure:</strong> Add any product fields you have. Missing fields will not reject the product; the importer derives a slug, discovers bundled images, and supplies neutral defaults where the database requires a value.
                 <div className="mt-2 p-3 bg-gray-50 rounded border font-mono text-xs">
                   {`{
   "slug": "product-slug",
@@ -330,7 +331,9 @@ export default function BulkImportPage() {
                         )}
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-700">
-                        {result.error || 'Product imported successfully'}
+                        {result.error || (result.warnings?.length
+                          ? `Imported with defaults: ${result.warnings.join('; ')}`
+                          : 'Product imported successfully')}
                       </td>
                     </tr>
                   ))}
@@ -368,4 +371,3 @@ export default function BulkImportPage() {
     </AdminLayout>
   );
 }
-

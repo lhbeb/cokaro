@@ -19,6 +19,12 @@ const catalogNavigation = [
   { label: 'Tents', href: '/search?category=Tents' },
 ] as const;
 
+const desktopNavLinkClass =
+  'relative py-1 text-sm font-medium text-[#003099] transition-colors duration-200 hover:text-[#4575ba] focus-visible:text-[#4575ba] focus-visible:outline-none after:absolute after:inset-x-0 after:-bottom-0.5 after:h-0.5 after:origin-center after:scale-x-0 after:rounded-full after:bg-[#4575ba] after:transition-transform after:duration-200 hover:after:scale-x-100 focus-visible:after:scale-x-100';
+
+const mobileMenuLinkClass =
+  'text-center font-medium text-[#003099] transition-colors duration-200 hover:text-[#4575ba] focus-visible:text-[#4575ba] focus-visible:outline-none';
+
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -306,21 +312,21 @@ const Header = () => {
                 <Link
                   key={item.label}
                   href={item.href}
-                  className="text-sm font-medium text-[#003099] transition-colors duration-300 hover:text-[#f5970c]"
+                  className={desktopNavLinkClass}
                 >
                   {item.label}
                 </Link>
               ))}
-              <Link href="/#featured" className="text-[#003099] hover:text-[#f5970c] font-medium text-sm transition-colors duration-300">
+              <Link href="/#featured" className={desktopNavLinkClass}>
                 Featured
               </Link>
-              <Link href="/track" className="text-[#003099] hover:text-[#f5970c] font-medium text-sm transition-colors duration-300">
+              <Link href="/track" className={desktopNavLinkClass}>
                 Track Order
               </Link>
-              <Link href="/frequently-asked-questions" className="text-[#003099] hover:text-[#f5970c] font-medium text-sm transition-colors duration-300">
+              <Link href="/frequently-asked-questions" className={desktopNavLinkClass}>
                 FAQs
               </Link>
-              <Link href="/contact" className="text-[#003099] hover:text-[#f5970c] font-medium text-sm transition-colors duration-300">
+              <Link href="/contact" className={desktopNavLinkClass}>
                 Contact us
               </Link>
             </nav>
@@ -332,13 +338,13 @@ const Header = () => {
           <div className="lg:hidden bg-[#f3f4f6] border-t border-[#0a3075]/10">
             <div className="container mx-auto px-4 py-4">
               <nav className="flex flex-col bg-[#f3f4f6] font-heading">
-                <Link href="/track" className="text-center text-[#003099] hover:text-[#f5970c] font-medium transition-colors duration-300 pb-4 border-b border-[#0a3075]/10" onClick={handleMobileMenuClose}>
+                <Link href="/track" className={`${mobileMenuLinkClass} pb-4 border-b border-[#0a3075]/10`} onClick={handleMobileMenuClose}>
                   Track Order
                 </Link>
-                <Link href="/frequently-asked-questions" className="text-center text-[#003099] hover:text-[#f5970c] font-medium transition-colors duration-300 py-4 border-b border-[#0a3075]/10" onClick={handleMobileMenuClose}>
+                <Link href="/frequently-asked-questions" className={`${mobileMenuLinkClass} py-4 border-b border-[#0a3075]/10`} onClick={handleMobileMenuClose}>
                   FAQs
                 </Link>
-                <Link href="/contact" className="text-center text-[#003099] hover:text-[#f5970c] font-medium transition-colors duration-300 py-4 border-b border-[#0a3075]/10" onClick={handleMobileMenuClose}>
+                <Link href="/contact" className={`${mobileMenuLinkClass} py-4 border-b border-[#0a3075]/10`} onClick={handleMobileMenuClose}>
                   Contact Us
                 </Link>
               </nav>
