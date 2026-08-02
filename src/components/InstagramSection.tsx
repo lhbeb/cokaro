@@ -15,7 +15,7 @@ const InstagramSection: React.FC = () => {
                 <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-500 rounded-full p-0.5 flex-shrink-0">
                   <div className="w-full h-full bg-white rounded-full overflow-hidden">
                     <Image
-                      src="https://i.ibb.co/DHywXL8s/profile-picture.png"
+                      src="/pdp.png"
                       alt="Cokaro Profile"
                       width={80}
                       height={80}
