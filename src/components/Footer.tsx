@@ -3,6 +3,9 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Mail, Phone, MapPin, Instagram } from 'lucide-react';
 
+const socialIconClass =
+  'inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#4575ba]/60 text-[#F0F6FF] transition-all duration-200 hover:-translate-y-0.5 hover:border-[#4575ba] hover:bg-[#4575ba] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a3075]';
+
 const Footer = () => {
   return (
     <footer className="bg-[#0a3075] text-[#F0F6FF]">
@@ -53,7 +56,7 @@ const Footer = () => {
                   href="https://www.tiktok.com/@deel_depot"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center text-[#F0F6FF] hover:text-[#f5970c] transition-colors duration-300"
+                  className={socialIconClass}
                   aria-label="Follow us on TikTok"
                 >
                   <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -64,7 +67,7 @@ const Footer = () => {
                   href="https://www.instagram.com/deel_depot/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center text-[#F0F6FF] hover:text-[#f5970c] transition-colors duration-300"
+                  className={socialIconClass}
                   aria-label="Follow us on Instagram"
                 >
                   <Instagram className="h-5 w-5" />
@@ -73,7 +76,7 @@ const Footer = () => {
                   href="https://fr.pinterest.com/deel_depot/_profile/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center text-[#F0F6FF] hover:text-[#f5970c] transition-colors duration-300"
+                  className={socialIconClass}
                   aria-label="Follow us on Pinterest"
                 >
                   <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">

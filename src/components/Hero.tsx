@@ -77,8 +77,7 @@ const Hero = () => {
             <h1 className="max-w-[620px] text-2xl font-bold leading-tight text-[#F0F6FF] md:text-3xl lg:text-[38px]">
               <span
                 ref={typingTextRef}
-                data-testid="hero-typing-text"
-                className="mb-1 block min-h-[2.4em] text-[#F0F6FF] sm:min-h-[1.2em] sm:whitespace-nowrap md:min-h-[2.4em] md:whitespace-normal xl:min-h-[1.2em] xl:whitespace-nowrap"
+                className="mb-1 block h-[1.2em] text-[#F0F6FF]"
               >
                 {placeholder}
               </span>
