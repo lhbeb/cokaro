@@ -18,7 +18,7 @@ const Footer = () => {
                 alt="Cokaro Logo"
                 width={160}
                 height={36}
-                className="w-36 sm:w-40 h-auto"
+                className="h-auto w-36 brightness-0 invert sm:w-40"
               />
             </Link>
             <p className="mb-4 text-[#F0F6FF]">
