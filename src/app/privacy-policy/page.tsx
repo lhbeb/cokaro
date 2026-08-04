@@ -147,11 +147,11 @@ const PrivacyPolicyPage = () => (
             </div>
             <div>
               <div className="font-medium text-[#262626] mb-1">UK Registered Office:</div>
-              <div className="text-gray-600">20 Matlock Cl, London, Greater London SE24 0BB, United Kingdom</div>
+              <div className="text-gray-600">Choats Rd, Barking, Dagenham RM9 6BF, United Kingdom</div>
             </div>
             <div>
               <div className="font-medium text-[#262626] mb-1">US Dispatch Center:</div>
-              <div className="text-gray-600">1249 Coney Island Ave, Brooklyn, NY 11230, United States</div>
+              <div className="text-gray-600">5850 E Raines Rd, Memphis, TN 38115, United States</div>
             </div>
             <div>
               <div className="font-medium text-[#262626] mb-1">Hours:</div>

@@ -125,18 +125,18 @@ export default function RootLayout({
                 "address": [
                   {
                     "@type": "PostalAddress",
-                    "streetAddress": "20 Matlock Cl",
-                    "addressLocality": "London",
-                    "addressRegion": "Greater London",
-                    "postalCode": "SE24 0BB",
+                    "streetAddress": "Choats Rd",
+                    "addressLocality": "Barking",
+                    "addressRegion": "Dagenham",
+                    "postalCode": "RM9 6BF",
                     "addressCountry": "GB"
                   },
                   {
                     "@type": "PostalAddress",
-                    "streetAddress": "1249 Coney Island Ave",
-                    "addressLocality": "Brooklyn",
-                    "addressRegion": "NY",
-                    "postalCode": "11230",
+                    "streetAddress": "5850 E Raines Rd",
+                    "addressLocality": "Memphis",
+                    "addressRegion": "TN",
+                    "postalCode": "38115",
                     "addressCountry": "US"
                   }
                 ]

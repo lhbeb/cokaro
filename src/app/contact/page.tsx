@@ -49,18 +49,18 @@ export default function ContactPage() {
         'address': [
           {
             '@type': 'PostalAddress',
-            'streetAddress': '20 Matlock Cl',
-            'addressLocality': 'London',
-            'addressRegion': 'Greater London',
-            'postalCode': 'SE24 0BB',
+            'streetAddress': 'Choats Rd',
+            'addressLocality': 'Barking',
+            'addressRegion': 'Dagenham',
+            'postalCode': 'RM9 6BF',
             'addressCountry': 'GB',
           },
           {
             '@type': 'PostalAddress',
-            'streetAddress': '1249 Coney Island Ave',
-            'addressLocality': 'Brooklyn',
-            'addressRegion': 'NY',
-            'postalCode': '11230',
+            'streetAddress': '5850 E Raines Rd',
+            'addressLocality': 'Memphis',
+            'addressRegion': 'TN',
+            'postalCode': '38115',
             'addressCountry': 'US',
           },
         ],
@@ -224,14 +224,14 @@ export default function ContactPage() {
                       <Building2 className="h-6 w-6 text-[#090A28] mt-1 shrink-0" />
                       <div className="ml-4">
                         <h3 className="font-medium text-[#262626]">UK Registered Office</h3>
-                        <p className="text-gray-600 mt-1">20 Matlock Cl, London, Greater London SE24 0BB, United Kingdom</p>
+                        <p className="text-gray-600 mt-1">Choats Rd, Barking, Dagenham RM9 6BF, United Kingdom</p>
                       </div>
                     </div>
                     <div className="flex items-start">
                       <MapPin className="h-6 w-6 text-[#090A28] mt-1 shrink-0" />
                       <div className="ml-4">
                         <h3 className="font-medium text-[#262626]">US Dispatch Center</h3>
-                        <p className="text-gray-600 mt-1">1249 Coney Island Ave, Brooklyn, NY 11230, United States</p>
+                        <p className="text-gray-600 mt-1">5850 E Raines Rd, Memphis, TN 38115, United States</p>
                       </div>
                     </div>
                     <div className="flex items-start">

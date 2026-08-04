@@ -32,7 +32,7 @@ export default function LocalPickupPage() {
               Pick up your Cokaro order with confidence
             </h1>
             <p className="mt-4 max-w-3xl text-sm leading-7 text-[#D9E6FF] sm:text-base">
-              Eligible outdoor power equipment and garden products can be collected from our location in Brooklyn, New York. This page covers what to expect, what to bring, and how collection works once your order is ready.
+              Eligible outdoor power equipment and garden products can be collected from our location in Memphis, Tennessee. This page covers what to expect, what to bring, and how collection works once your order is ready.
             </p>
           </section>
 
@@ -103,9 +103,9 @@ export default function LocalPickupPage() {
                     <div className="mt-4 space-y-4 text-sm leading-7 text-[#5B6785]">
                       <address className="not-italic">
                         <span className="block font-semibold text-[#262626]">United States</span>
-                        1249 Coney Island Ave
+                        5850 E Raines Rd
                         <br />
-                        Brooklyn, NY 11230
+                        Memphis, TN 38115
                         <br />
                         United States
                       </address>

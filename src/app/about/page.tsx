@@ -55,18 +55,18 @@ export default function AboutPage() {
         'address': [
           {
             '@type': 'PostalAddress',
-            'streetAddress': '20 Matlock Cl',
-            'addressLocality': 'London',
-            'addressRegion': 'Greater London',
-            'postalCode': 'SE24 0BB',
+            'streetAddress': 'Choats Rd',
+            'addressLocality': 'Barking',
+            'addressRegion': 'Dagenham',
+            'postalCode': 'RM9 6BF',
             'addressCountry': 'GB',
           },
           {
             '@type': 'PostalAddress',
-            'streetAddress': '1249 Coney Island Ave',
-            'addressLocality': 'Brooklyn',
-            'addressRegion': 'NY',
-            'postalCode': '11230',
+            'streetAddress': '5850 E Raines Rd',
+            'addressLocality': 'Memphis',
+            'addressRegion': 'TN',
+            'postalCode': '38115',
             'addressCountry': 'US',
           },
         ],
@@ -114,10 +114,10 @@ export default function AboutPage() {
             </div>
             <div className="space-y-4 text-base leading-7 text-gray-700">
               <p>
-                Cokaro operates out of Brooklyn, New York, serving customers across the United States. Our central warehouse and fulfillment operations are designed to get your order to you fast.
+                Cokaro operates out of Memphis, Tennessee, serving customers across the United States. Our central warehouse and fulfillment operations are designed to get your order to you fast.
               </p>
               <p>
-                Eligible products can be collected locally from our Brooklyn location. Our team confirms the available pickup address and collection time for each order before you travel.
+                Eligible products can be collected locally from our Memphis location. Our team confirms the available pickup address and collection time for each order before you travel.
               </p>
               <Link href="/local-pickup" className="inline-flex font-semibold text-[#0a3075] hover:text-[#0a0f32] hover:underline">
                 View the local pickup guide
@@ -402,14 +402,14 @@ export default function AboutPage() {
                 <MapPin className="h-5 w-5 text-[#0a3075]" />
                 <div className="font-medium text-[#262626]">UK Registered Office</div>
               </div>
-              <div className="text-gray-600 ml-8">20 Matlock Cl, London, Greater London SE24 0BB, United Kingdom</div>
+              <div className="text-gray-600 ml-8">Choats Rd, Barking, Dagenham RM9 6BF, United Kingdom</div>
             </div>
             <div className="bg-[#F0F6FF] rounded-xl p-6 border border-[#0a3075]/10">
               <div className="flex items-center gap-3 mb-3">
                 <MapPin className="h-5 w-5 text-[#0a3075]" />
                 <div className="font-medium text-[#262626]">US Dispatch Center</div>
               </div>
-              <div className="text-gray-600 ml-8">1249 Coney Island Ave, Brooklyn, NY 11230, United States</div>
+              <div className="text-gray-600 ml-8">5850 E Raines Rd, Memphis, TN 38115, United States</div>
             </div>
             <div className="bg-[#F0F6FF] rounded-xl p-6 border border-[#0a3075]/10">
               <div className="flex items-center gap-3 mb-3">

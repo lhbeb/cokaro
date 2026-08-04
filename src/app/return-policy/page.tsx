@@ -266,11 +266,11 @@ export default function ReturnPolicyPage() {
                 <div className="text-sm text-gray-600 pl-7 space-y-2">
                   <div>
                     <strong className="text-gray-900 block">UK Registered Office:</strong>
-                    20 Matlock Cl, London, Greater London SE24 0BB, United Kingdom
+                    Choats Rd, Barking, Dagenham RM9 6BF, United Kingdom
                   </div>
                   <div>
                     <strong className="text-gray-900 block">US Dispatch Center:</strong>
-                    1249 Coney Island Ave, Brooklyn, NY 11230, United States
+                    5850 E Raines Rd, Memphis, TN 38115, United States
                   </div>
                 </div>
               </div>
