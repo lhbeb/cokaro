@@ -88,6 +88,8 @@ export default function RootLayout({
         {/* Facebook Domain Verification */}
         <meta name="facebook-domain-verification" content="k3ytyf6hqaa462mz10uzwnmugj0d0o" />
         <meta name="msvalidate.01" content="75494FC1101908256EEEA046C47C3264" />
+        {/* Google Merchant Center Domain Claim Verification */}
+        <meta name="google-site-verification" content="o8gC6haURQ1t7L9G8xfh_-5imCYNPmnhjnt2IrgEPco" />
       </head>
       <body suppressHydrationWarning className={`${dmSans.variable} font-sans antialiased text-[#262626]`}>
         <GlobalErrorReporter />
@@ -111,9 +113,9 @@ export default function RootLayout({
                 "logo": "https://cokaro.com/logosvg.svg",
                 "description": "Cokaro - Power Your Outdoor and Home Projects With Confidence. Discover reliable lawn mowers, power tools, generators, and garden essentials.",
                 "sameAs": [
-                  "https://www.tiktok.com/@deel_depot",
-                  "https://www.instagram.com/deel_depot/",
-                  "https://fr.pinterest.com/deel_depot/_profile/"
+                  "https://www.tiktok.com/@cokaro_officiel",
+                  "https://www.instagram.com/cokaro_officiel/",
+                  "https://www.pinterest.com/cokaro_officiel/"
                 ],
                 "contactPoint": {
                   "@type": "ContactPoint",

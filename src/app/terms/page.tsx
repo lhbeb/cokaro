@@ -115,14 +115,14 @@ const TermsPage = () => {
           <div>
             <h2 className="text-3xl font-bold text-[#262626] mt-10 mb-4">6. Shipping Policy</h2>
             <p className="mb-4">
-              Shipping applies to all orders within the United States and Canada.
+              Free standard shipping applies to all orders within the United States and United Kingdom.
             </p>
             <ul className="list-disc pl-6 space-y-2">
               <li>Same-day shipping is available for orders placed before 2:00 PM EST.</li>
-              <li>Standard processing time is 1 business day.</li>
-              <li>Domestic USA delivery time is typically 5 to 8 business days.</li>
-              <li>Canada delivery time is typically 7 to 10 business days.</li>
-              <li>All orders qualify for free shipping.</li>
+              <li>Standard processing time is 0 to 1 business day.</li>
+              <li>Domestic USA delivery time is 5 to 9 business days.</li>
+              <li>United Kingdom delivery time is 5 to 9 business days.</li>
+              <li>All orders qualify for free standard shipping with no minimum spend required.</li>
               <li>Tracking information is sent to the customer via email once the order ships.</li>
             </ul>
             <p className="mt-4">

@@ -53,7 +53,7 @@ const Footer = () => {
               </div>
               <div className="pt-2 flex gap-3">
                 <a
-                  href="https://www.tiktok.com/@deel_depot"
+                  href="https://www.tiktok.com/@cokaro_officiel"
                   target="_blank"
                   rel="noopener noreferrer"
                   className={socialIconClass}
@@ -64,7 +64,7 @@ const Footer = () => {
                   </svg>
                 </a>
                 <a
-                  href="https://www.instagram.com/deel_depot/"
+                  href="https://www.instagram.com/cokaro_officiel/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className={socialIconClass}
@@ -73,7 +73,7 @@ const Footer = () => {
                   <Instagram className="h-5 w-5" />
                 </a>
                 <a
-                  href="https://fr.pinterest.com/deel_depot/_profile/"
+                  href="https://www.pinterest.com/cokaro_officiel/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className={socialIconClass}

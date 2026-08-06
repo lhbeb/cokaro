@@ -72,7 +72,7 @@ export default function SellerPageClient({ seller }: Props) {
       {/* Hero Section */}
       <div className="bg-gradient-to-br from-[#0a3075] to-[#0a3075] text-[#F0F6FF] pt-24 pb-12 rounded-b-[40px] shadow-lg relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-10"></div>
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#f5970c] rounded-full filter blur-[120px] opacity-10 -translate-y-1/2 translate-x-1/2"></div>
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#4575ba] rounded-full filter blur-[120px] opacity-10 -translate-y-1/2 translate-x-1/2"></div>
         
         <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-4xl mx-auto flex flex-col md:flex-row items-center md:items-start gap-8">
@@ -94,7 +94,7 @@ export default function SellerPageClient({ seller }: Props) {
               <div className="flex flex-col md:flex-row items-center md:items-end gap-3 mb-2">
                 <h1 className="text-3xl md:text-4xl font-bold tracking-tight">{seller.name}</h1>
                 <div className="relative group flex">
-                  <div className="cursor-help flex items-center gap-1.5 bg-[#f5970c] text-[#0a3075] px-2.5 py-1 rounded-full text-xs font-semibold backdrop-blur-sm border border-[#f5970c]/50 transition-colors hover:bg-[#f5970c]/90">
+                  <div className="cursor-help flex items-center gap-1.5 bg-[#4575ba] text-white px-2.5 py-1 rounded-full text-xs font-semibold backdrop-blur-sm border border-[#4575ba]/50 transition-colors hover:bg-[#4575ba]/90">
                     <Star className="w-3 h-3 fill-current" />
                     Star Seller
                   </div>
@@ -116,16 +116,16 @@ export default function SellerPageClient({ seller }: Props) {
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-y-2 gap-x-6 text-sm text-[#F0F6FF]/80 mb-6">
                 {(seller.location || 'United States') && (
                   <div className="flex items-center gap-1.5">
-                    <MapPin className="w-4 h-4 text-[#f5970c]" />
+                    <MapPin className="w-4 h-4 text-[#4575ba]" />
                     <span>{seller.location || 'United States'}</span>
                   </div>
                 )}
                 <div className="flex items-center gap-1.5">
-                  <Calendar className="w-4 h-4 text-[#f5970c]" />
+                  <Calendar className="w-4 h-4 text-[#4575ba]" />
                   <span>Joined {seller.memberSince || new Date(seller.createdAt || Date.now()).getFullYear()}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <Package className="w-4 h-4 text-[#f5970c]" />
+                  <Package className="w-4 h-4 text-[#4575ba]" />
                   <span>{products.length} Items Listed</span>
                 </div>
               </div>
@@ -145,7 +145,7 @@ export default function SellerPageClient({ seller }: Props) {
                         key={i}
                         className={`h-4 w-4 ${
                           i < Math.floor(seller.averageRating ?? 0)
-                            ? 'text-[#f5970c] fill-[#f5970c]'
+                            ? 'text-[#4575ba] fill-[#4575ba]'
                             : 'text-white/30'
                         }`}
                       />
@@ -195,12 +195,12 @@ export default function SellerPageClient({ seller }: Props) {
               </div>
               
               <div className="bg-gradient-to-br from-[#0a3075] to-[#0a3075] p-6 rounded-3xl border border-[#0a3075]/10 flex flex-col items-center text-center text-[#F0F6FF] shadow-sm">
-                <div className="w-12 h-12 bg-[#f5970c]/15 text-[#f5970c] rounded-full flex items-center justify-center mb-3">
+                <div className="w-12 h-12 bg-[#4575ba]/15 text-[#4575ba] rounded-full flex items-center justify-center mb-3">
                   <HelpCircle className="w-6 h-6" />
                 </div>
                 <h3 className="font-semibold text-[#F0F6FF] mb-2">Have a question?</h3>
                 <p className="text-sm text-[#F0F6FF]/80 mb-4">You can reach out to our dedicated support team regarding any items sold by {seller.name}.</p>
-                <Link href="/contact" className="w-full px-4 py-2.5 bg-[#f5970c] text-[#0a3075] font-medium rounded-xl hover:bg-[#f5970c]/90 transition-colors shadow-sm text-sm">
+                <Link href="/contact" className="w-full px-4 py-2.5 bg-[#4575ba] text-white font-medium rounded-xl hover:bg-[#4575ba]/90 transition-colors shadow-sm text-sm">
                   Contact Support
                 </Link>
               </div>

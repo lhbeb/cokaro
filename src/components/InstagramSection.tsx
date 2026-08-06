@@ -26,7 +26,7 @@ const InstagramSection: React.FC = () => {
 
                 {/* Profile Details */}
                 <div className="flex-grow">
-                  <h3 className="font-bold text-[#262626] text-lg sm:text-xl mb-1">@deel_depot</h3>
+                  <h3 className="font-bold text-[#262626] text-lg sm:text-xl mb-1">@cokaro_officiel</h3>
                   <p className="text-gray-600 text-sm sm:text-base mb-2">Cokaro</p>
 
                   {/* Statistics */}
@@ -36,11 +36,11 @@ const InstagramSection: React.FC = () => {
                       <div className="text-gray-500 text-xs">posts</div>
                     </div>
                     <div className="text-center">
-                      <div className="font-bold text-[#262626]">2,454</div>
+                      <div className="font-bold text-[#262626]">1,423</div>
                       <div className="text-gray-500 text-xs">followers</div>
                     </div>
                     <div className="text-center">
-                      <div className="font-bold text-[#262626]">7</div>
+                      <div className="font-bold text-[#262626]">10</div>
                       <div className="text-gray-500 text-xs">following</div>
                     </div>
                   </div>
@@ -50,7 +50,7 @@ const InstagramSection: React.FC = () => {
               {/* Follow Us Button */}
               <div className="flex-shrink-0">
                 <a
-                  href="https://www.instagram.com/deel_depot/"
+                  href="https://www.instagram.com/cokaro_officiel/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-medium rounded-lg transition-all duration-200 shadow-sm hover:shadow-md"
