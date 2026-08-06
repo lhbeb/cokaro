@@ -47,7 +47,10 @@ function isFeedEligible(product: Product): boolean {
   );
 }
 
-function buildShippingXml(countries: readonly FeedCountry[]): string {
+function buildShippingXml(
+  countries: readonly FeedCountry[],
+  itemCurrency: string,
+): string {
   return countries
     .map((country) => {
       const shipping = SHIPPING_BY_COUNTRY[country];
@@ -55,7 +58,7 @@ function buildShippingXml(countries: readonly FeedCountry[]): string {
       <g:shipping>
         <g:country>${country}</g:country>
         <g:service>${shipping.service}</g:service>
-        <g:price>0.00 ${shipping.currency}</g:price>
+        <g:price>0.00 ${itemCurrency}</g:price>
         <g:min_handling_time>0</g:min_handling_time>
         <g:max_handling_time>1</g:max_handling_time>
         <g:min_transit_time>5</g:min_transit_time>
@@ -125,7 +128,7 @@ export async function GET(request: NextRequest) {
       <g:condition>${condition}</g:condition>
       <g:brand>${brand}</g:brand>
       <g:product_type>${category}</g:product_type>
-      <g:identifier_exists>no</g:identifier_exists>${buildShippingXml(targetCountries)}
+      <g:identifier_exists>no</g:identifier_exists>${buildShippingXml(targetCountries, productCurrency)}
     </item>`;
       })
       .join('');
