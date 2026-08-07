@@ -56,7 +56,8 @@ export default function AdminProductsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [togglingFeatured, setTogglingFeatured] = useState<string | null>(null);
-  const [togglingGmc, setTogglingGmc] = useState<string | null>(null);
+  const [togglingGmc, setTogglingGmc] = useState<Set<string>>(new Set());
+  const [bulkUpdatingGmc, setBulkUpdatingGmc] = useState<'include' | 'exclude' | null>(null);
   const [togglingStock, setTogglingStock] = useState<string | null>(null);
   const [featuredCount, setFeaturedCount] = useState(0);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
@@ -304,11 +305,13 @@ export default function AdminProductsPage() {
   };
 
   const handleToggleGmc = async (slug: string) => {
+    if (bulkUpdatingGmc !== null || togglingGmc.has(slug)) return;
+
     const product = products.find((item) => item.slug === slug);
     if (!product) return;
 
     const nextGmcStatus = !isGmcEnabled(product);
-    setTogglingGmc(slug);
+    setTogglingGmc((previous) => new Set(previous).add(slug));
     setError('');
 
     try {
@@ -337,7 +340,59 @@ export default function AdminProductsPage() {
     } catch (err: any) {
       setError(err.message || 'Failed to update GMC selection');
     } finally {
-      setTogglingGmc(null);
+      setTogglingGmc((previous) => {
+        const next = new Set(previous);
+        next.delete(slug);
+        return next;
+      });
+    }
+  };
+
+  const handleBulkGmcUpdate = async (enabled: boolean) => {
+    if (selectedProducts.size === 0) {
+      setError('Select at least one product first.');
+      return;
+    }
+
+    const action = enabled ? 'include' : 'exclude';
+    setBulkUpdatingGmc(action);
+    setError('');
+
+    try {
+      const token = localStorage.getItem('admin_token');
+      const response = await fetch('/api/admin/products/bulk-gmc', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` }),
+        },
+        body: JSON.stringify({
+          slugs: Array.from(selectedProducts),
+          enabled,
+        }),
+      });
+
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to update selected GMC products');
+      }
+
+      const updatedSlugs = new Set<string>(result.updatedSlugs || []);
+      const applyGmcStatus = (item: Product): Product =>
+        updatedSlugs.has(item.slug)
+          ? { ...item, meta: { ...(item.meta || {}), gmc_enabled: enabled } }
+          : item;
+
+      setProducts((previous) => previous.map(applyGmcStatus));
+      setFilteredProducts((previous) => previous.map(applyGmcStatus));
+
+      if (result.failedCount > 0) {
+        setError(`${result.updatedCount} products updated; ${result.failedCount} failed. Try the failed products again.`);
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to update selected GMC products');
+    } finally {
+      setBulkUpdatingGmc(null);
     }
   };
 
@@ -939,6 +994,32 @@ export default function AdminProductsPage() {
             {selectedProducts.size > 0 && (
               <>
                 <button
+                  onClick={() => handleBulkGmcUpdate(true)}
+                  disabled={bulkUpdatingGmc !== null || togglingGmc.size > 0}
+                  className="inline-flex items-center justify-center gap-2 px-3 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors shadow-lg shadow-blue-500/25 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap text-sm shrink-0"
+                  title="Include selected products in the Google Merchant Center feed"
+                >
+                  {bulkUpdatingGmc === 'include' ? (
+                    <RefreshCw className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <PackageCheck className="h-4 w-4" />
+                  )}
+                  <span className="font-medium">Add to GMC ({selectedProducts.size})</span>
+                </button>
+                <button
+                  onClick={() => handleBulkGmcUpdate(false)}
+                  disabled={bulkUpdatingGmc !== null || togglingGmc.size > 0}
+                  className="inline-flex items-center justify-center gap-2 px-3 py-2.5 bg-gray-600 text-white rounded-xl hover:bg-gray-700 transition-colors shadow-lg shadow-gray-500/20 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap text-sm shrink-0"
+                  title="Exclude selected products from the Google Merchant Center feed"
+                >
+                  {bulkUpdatingGmc === 'exclude' ? (
+                    <RefreshCw className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <PackageX className="h-4 w-4" />
+                  )}
+                  <span className="font-medium">Remove from GMC ({selectedProducts.size})</span>
+                </button>
+                <button
                   onClick={handleExportAffiliateJSON}
                   disabled={exportingJSON}
                   className="inline-flex items-center justify-center gap-2 px-3 py-2.5 bg-violet-600 text-white rounded-xl hover:bg-violet-700 transition-colors shadow-lg shadow-violet-500/25 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap text-sm shrink-0"
@@ -1203,7 +1284,7 @@ export default function AdminProductsPage() {
                 <button
                   type="button"
                   onClick={() => handleToggleGmc(product.slug)}
-                  disabled={togglingGmc === product.slug}
+                  disabled={bulkUpdatingGmc !== null || togglingGmc.has(product.slug)}
                   aria-pressed={isGmcEnabled(product)}
                   className={`mt-3 inline-flex w-full items-center justify-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold transition-colors disabled:opacity-60 ${isGmcEnabled(product)
                     ? 'bg-blue-600 text-white hover:bg-blue-700'
@@ -1211,7 +1292,7 @@ export default function AdminProductsPage() {
                     }`}
                   title={isGmcEnabled(product) ? 'Remove product from Google Merchant Center feed' : 'Add product to Google Merchant Center feed'}
                 >
-                  {togglingGmc === product.slug && <RefreshCw className="h-3.5 w-3.5 animate-spin" />}
+                  {togglingGmc.has(product.slug) && <RefreshCw className="h-3.5 w-3.5 animate-spin" />}
                   GMC
                   <span className={isGmcEnabled(product) ? 'text-blue-100' : 'text-gray-400'}>
                     {isGmcEnabled(product) ? 'Included' : 'Excluded'}
@@ -1424,7 +1505,7 @@ export default function AdminProductsPage() {
                     <button
                       type="button"
                       onClick={() => handleToggleGmc(product.slug)}
-                      disabled={togglingGmc === product.slug}
+                      disabled={bulkUpdatingGmc !== null || togglingGmc.has(product.slug)}
                       aria-pressed={isGmcEnabled(product)}
                       className={`inline-flex min-w-[72px] items-center justify-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold transition-colors disabled:opacity-60 ${isGmcEnabled(product)
                         ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
@@ -1432,7 +1513,7 @@ export default function AdminProductsPage() {
                         }`}
                       title={isGmcEnabled(product) ? 'Remove product from Google Merchant Center feed' : 'Add product to Google Merchant Center feed'}
                     >
-                      {togglingGmc === product.slug && <RefreshCw className="h-3 w-3 animate-spin" />}
+                      {togglingGmc.has(product.slug) && <RefreshCw className="h-3 w-3 animate-spin" />}
                       GMC
                     </button>
                   </td>
@@ -1566,11 +1647,11 @@ export default function AdminProductsPage() {
                                 handleToggleGmc(product.slug);
                                 setOpenDropdown(null);
                               }}
-                              disabled={togglingGmc === product.slug}
+                              disabled={bulkUpdatingGmc !== null || togglingGmc.has(product.slug)}
                               aria-pressed={isGmcEnabled(product)}
                               className="w-full px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                              {togglingGmc === product.slug ? (
+                              {togglingGmc.has(product.slug) ? (
                                 <RefreshCw className="h-4 w-4 text-blue-600 animate-spin" />
                               ) : (
                                 <span className={`flex h-4 min-w-8 items-center justify-center rounded px-1 text-[9px] font-bold ${isGmcEnabled(product) ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'}`}>
