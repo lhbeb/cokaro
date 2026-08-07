@@ -381,6 +381,8 @@ export async function createProduct(productData: {
       review_count: reviewCount,
       reviews: productData.reviews || [],
       meta: {
+        gmc_enabled: true,
+        published: true,
         ...(productData.meta || {}),
         original_price: productData.original_price || productData.originalPrice || null
       },
