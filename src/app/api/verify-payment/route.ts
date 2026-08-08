@@ -65,6 +65,8 @@ export async function POST(request: NextRequest) {
             sessionId: session.id,
             amount: session.amount_total,
             currency: session.currency,
+            productSlug: order.product_slug || null,
+            productTitle: order.product_title || null,
         });
 
     } catch (error: any) {
