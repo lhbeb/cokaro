@@ -75,17 +75,24 @@ export default function AdminSidebar() {
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
 
   useEffect(() => {
+    const checkRole = (rawRole: string | undefined | null) => {
+      if (!rawRole) return;
+      const normalized = rawRole.toUpperCase().replace(/-/g, '_');
+      if (normalized === 'SUPER_ADMIN') {
+        setIsSuperAdmin(true);
+        setIsAdmin(true);
+      } else if (normalized === 'REGULAR_ADMIN' || normalized === 'ADMIN') {
+        setIsAdmin(true);
+      }
+    };
+
     // First try the dedicated non-HttpOnly cookie
     const cookies = document.cookie.split(';');
     const roleCookie = cookies.find(c => c.trim().startsWith('admin_role='));
 
     if (roleCookie) {
       const role = roleCookie.split('=')[1]?.trim();
-      if (role === 'super-admin') {
-        setIsSuperAdmin(true);
-      } else if (role === 'admin') {
-        setIsAdmin(true);
-      }
+      checkRole(role);
       return; // Cookie worked, skip JWT
     }
 
@@ -96,11 +103,7 @@ export default function AdminSidebar() {
         const base64Url = token.split('.')[1];
         const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
         const payload = JSON.parse(atob(base64));
-        if (payload.role === 'super-admin') {
-          setIsSuperAdmin(true);
-        } else if (payload.role === 'admin') {
-          setIsAdmin(true);
-        }
+        checkRole(payload.role);
       } catch (e) {
         console.error("Failed to parse admin token role.");
       }

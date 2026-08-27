@@ -315,7 +315,7 @@ export default function AboutPage() {
                 <Headphones className="h-6 w-6 text-[#0a3075]" />
                 <h3 className="text-xl font-bold text-[#262626]">Customer Focus</h3>
               </div>
-              <p className="text-gray-700">We offer fast and free shipping within the United States and Canada, a 30 day return policy, and reliable human support.</p>
+              <p className="text-gray-700">We offer fast and free shipping within the United States and United Kingdom, a 30 day return policy, and reliable human support.</p>
             </div>
 
             <div className="bg-[#F0F6FF] rounded-xl p-6 border border-[#0a3075]/10 md:col-span-2">

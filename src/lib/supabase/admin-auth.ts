@@ -36,7 +36,7 @@ const ADMIN_CREDENTIALS = {
     REGULAR_ADMIN: {
         email: 'elmahboubimehdi@gmail.com',
         password: 'Localserver!!2',
-        role: 'REGULAR_ADMIN' as AdminRole,
+        role: 'SUPER_ADMIN' as AdminRole,
     },
     SUPER_ADMIN: {
         email: 'Matrix01mehdi@gmail.com',
@@ -108,6 +108,10 @@ export async function authenticateAdmin(
             return { success: false, error: 'Invalid credentials' };
         }
 
+        const targetRole: AdminRole = isSuperAdmin
+            ? ADMIN_CREDENTIALS.SUPER_ADMIN.role
+            : ADMIN_CREDENTIALS.REGULAR_ADMIN.role;
+
         // Get or create admin user in database
         const { data: existingAdmin, error: fetchError } = await supabaseAdmin
             .from('admin_roles')
@@ -119,20 +123,19 @@ export async function authenticateAdmin(
 
         if (fetchError || !existingAdmin) {
             // Create admin user in database
-            const role = isRegularAdmin ? 'REGULAR_ADMIN' : 'SUPER_ADMIN';
             const passwordHash = await hashPassword(password);
 
             const { data: newAdmin, error: createError } = await supabaseAdmin
                 .from('admin_roles')
                 .insert({
                     email: normalizedEmail,
-                    role: role,
+                    role: targetRole,
                     password_hash: passwordHash,
                     is_active: true,
                     last_login: new Date().toISOString(),
                     metadata: {
-                        display_name: isRegularAdmin ? 'Regular Admin' : 'Super Admin',
-                        department: isRegularAdmin ? 'Operations' : 'System Administration',
+                        display_name: targetRole === 'SUPER_ADMIN' ? 'Super Admin' : 'Regular Admin',
+                        department: targetRole === 'SUPER_ADMIN' ? 'System Administration' : 'Operations',
                     },
                 })
                 .select()
@@ -145,16 +148,29 @@ export async function authenticateAdmin(
 
             adminUser = newAdmin;
         } else {
-            // Update last login
+            // Update last login and synchronize role if needed
+            const updatePayload: Record<string, any> = {
+                last_login: new Date().toISOString(),
+            };
+
+            if (existingAdmin.role !== targetRole) {
+                updatePayload.role = targetRole;
+                updatePayload.metadata = {
+                    ...(existingAdmin.metadata || {}),
+                    display_name: targetRole === 'SUPER_ADMIN' ? 'Super Admin' : 'Regular Admin',
+                    department: targetRole === 'SUPER_ADMIN' ? 'System Administration' : 'Operations',
+                };
+            }
+
             const { data: updatedAdmin, error: updateError } = await supabaseAdmin
                 .from('admin_roles')
-                .update({ last_login: new Date().toISOString() })
+                .update(updatePayload)
                 .eq('id', existingAdmin.id)
                 .select()
                 .single();
 
             if (updateError) {
-                console.error('Error updating last login:', updateError);
+                console.error('Error updating admin role / last login:', updateError);
             }
 
             adminUser = updatedAdmin || existingAdmin;
