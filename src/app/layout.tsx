@@ -88,6 +88,25 @@ export default function RootLayout({
         {/* Google Merchant Center Domain Claim Verification */}
         <meta name="google-site-verification" content="o8gC6haURQ1t7L9G8xfh_-5imCYNPmnhjnt2IrgEPco" />
         <meta name="google-site-verification" content="whWwvqC20XmxK8qOhFgMP6wWGrqw2QYp-W-OSxNmlW8" />
+        {/* Meta Pixel base snippet + init.
+            Loaded synchronously in <head> (NOT afterInteractive) so `window.fbq` exists
+            before React hydrates. This removes the race that silently dropped PageView,
+            AddToCart, ViewContent and InitiateCheckout events. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','869199797850063');fbq('track','PageView');`,
+          }}
+        />
+        <noscript>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            height="1"
+            width="1"
+            style={{ display: "none" }}
+            src="https://www.facebook.com/tr?id=869199797850063&ev=PageView&noscript=1"
+            alt=""
+          />
+        </noscript>
       </head>
       <body suppressHydrationWarning className={`${dmSans.variable} font-sans antialiased text-[#262626]`}>
         <GlobalErrorReporter />

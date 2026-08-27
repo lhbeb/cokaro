@@ -19,6 +19,7 @@ import type { CartItem } from '@/utils/cart';
 import { debugError, debugLog } from '@/utils/debug';
 import { preventScrollOnClick } from '@/utils/scrollUtils';
 import { trackPixelEvent } from '@/lib/pixel';
+import { setPendingOrder } from '@/lib/pendingOrder';
 import { usesCountryFirstAddress } from '@/lib/shipping';
 
 const REDIRECT_DELAY_MS = 4000;
@@ -414,6 +415,12 @@ const CheckoutPage: React.FC = () => {
       const orderId = orderResult?.orderId || null;
       const checkoutLink = orderResult?.checkoutLink || product.checkoutLink;
       setAssignedCheckoutLink(checkoutLink || null);
+
+      // Remember the saved order so the /thankyou page can fire a Purchase event
+      // from the real order data (with eventID = orderId) instead of leftover cart state.
+      if (orderId) {
+        setPendingOrder(orderId, product);
+      }
       console.log('📧 [Checkout] sendShippingEmail returned:', orderResult);
 
       if (!orderId) {

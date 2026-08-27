@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase/server';
+import { getOrderById } from '@/lib/supabase/orders';
+import { sendMetaServerPurchase } from '@/lib/meta-pixel-server';
 
 export async function POST(
   request: NextRequest,
@@ -193,6 +195,34 @@ export async function POST(
       updatedAt: updatedOrder.updated_at,
       duration: `${duration}ms`
     });
+
+    // Best-effort: fire a server-side Meta Purchase (Conversions API) so the
+    // conversion is tracked even for Buy Me A Coffee orders where there is no
+    // automated payment confirmation. eventID = orderId dedupes against the
+    // client-side Purchase fired on /thankyou. Never blocks the admin action.
+    try {
+      const order = await getOrderById(id);
+      if (order) {
+        const fullOrderData =
+          typeof order.full_order_data === 'string'
+            ? JSON.parse(order.full_order_data)
+            : order.full_order_data || {};
+
+        await sendMetaServerPurchase({
+          orderId: id,
+          value: Number(order.product_price) || 0,
+          currency: fullOrderData?.product?.currency || 'USD',
+          contentIds: [order.product_slug || ''],
+          contentName: order.product_title || '',
+          email: order.customer_email || undefined,
+          eventSourceUrl: fullOrderData?.siteUrl
+            ? `${fullOrderData.siteUrl}/thankyou`
+            : undefined,
+        });
+      }
+    } catch (metaError) {
+      console.error('[MARK-CONVERTED] Failed to send Meta server-side Purchase:', metaError);
+    }
 
     return NextResponse.json({
       success: true,
