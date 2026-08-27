@@ -17,8 +17,25 @@ export async function POST(
     // Step 0: Verify user is SUPER_ADMIN
     console.log('🔐 [MARK-CONVERTED] Step 0: Verifying admin role...');
     const adminRole = request.cookies.get('admin_role')?.value;
+    const adminEmail = request.cookies.get('admin_email')?.value?.toLowerCase();
+    const token = request.cookies.get('admin_token')?.value;
 
-    if (adminRole !== 'SUPER_ADMIN') {
+    let isAuthorizedSuperAdmin = adminRole === 'SUPER_ADMIN' || adminEmail === 'elmahboubimehdi@gmail.com' || adminEmail === 'matrix01mehdi@gmail.com';
+
+    if (!isAuthorizedSuperAdmin && token) {
+      try {
+        const { jwtVerify } = await import('jose');
+        const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+        const { payload } = await jwtVerify(token, new TextEncoder().encode(JWT_SECRET));
+        const decodedEmail = (payload as any).email?.toLowerCase();
+        const decodedRole = (payload as any).role;
+        if (decodedRole === 'SUPER_ADMIN' || decodedEmail === 'elmahboubimehdi@gmail.com' || decodedEmail === 'matrix01mehdi@gmail.com') {
+          isAuthorizedSuperAdmin = true;
+        }
+      } catch {}
+    }
+
+    if (!isAuthorizedSuperAdmin) {
       console.error('❌ [MARK-CONVERTED] Access denied - user is not SUPER_ADMIN:', adminRole);
       return NextResponse.json(
         {

@@ -72,8 +72,10 @@ async function getAdminAuth(request: NextRequest) {
         return null;
       }
 
-      console.log('✅ [AUTH] JWT token verified for:', decoded.email, 'Role:', decoded.role);
-      return { authenticated: true, role: decoded.role, email: decoded.email };
+      const isSuper = ['elmahboubimehdi@gmail.com', 'matrix01mehdi@gmail.com'].includes(decoded.email?.toLowerCase()) || decoded.role === 'SUPER_ADMIN';
+      const effectiveRole = isSuper ? 'SUPER_ADMIN' : decoded.role;
+      console.log('✅ [AUTH] JWT token verified for:', decoded.email, 'Role:', effectiveRole);
+      return { authenticated: true, role: effectiveRole, email: decoded.email };
     } catch (error) {
       console.error('❌ [AUTH] JWT verification failed:', error);
       return null;

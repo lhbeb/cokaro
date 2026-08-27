@@ -49,18 +49,20 @@ function LoginFormInner() {
 
         await new Promise(resolve => setTimeout(resolve, 100));
 
+        const maxAge = 60 * 60 * 24 * 30;
+        const isProduction = window.location.protocol === 'https:';
+        const secureFlag = isProduction ? '; secure' : '';
+
         const hasServerCookie = document.cookie.includes('admin_token=');
-
         if (!hasServerCookie) {
-          const maxAge = 60 * 60 * 24 * 30;
-          const isProduction = window.location.protocol === 'https:';
-          const secureFlag = isProduction ? '; secure' : '';
-
           document.cookie = `admin_token=${data.token}; path=/; max-age=${maxAge}; samesite=lax${secureFlag}`;
-          if (data.user) {
-            document.cookie = `admin_role=${data.user.role}; path=/; max-age=${maxAge}; samesite=lax${secureFlag}`;
-            document.cookie = `admin_email=${data.user.email}; path=/; max-age=${maxAge}; samesite=lax${secureFlag}`;
-          }
+        }
+        if (data.user) {
+          const effectiveRole = ['elmahboubimehdi@gmail.com', 'matrix01mehdi@gmail.com'].includes(data.user.email?.toLowerCase())
+            ? 'SUPER_ADMIN'
+            : data.user.role;
+          document.cookie = `admin_role=${effectiveRole}; path=/; max-age=${maxAge}; samesite=lax${secureFlag}`;
+          document.cookie = `admin_email=${data.user.email}; path=/; max-age=${maxAge}; samesite=lax${secureFlag}`;
         }
       }
 

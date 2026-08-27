@@ -35,12 +35,38 @@ export default function SellersPage() {
 
   useEffect(() => { 
     fetchSellers(); 
-    // Check admin role from cookies for authorization rules
+    // Check admin role from cookies or token for authorization rules
     if (typeof document !== 'undefined') {
-      const roleMatch = document.cookie.split('; ').find(row => row.startsWith('admin_role='));
-      if (roleMatch) {
-        setAdminRole(roleMatch.split('=')[1]);
-      }
+      const getRole = () => {
+        const cookies = document.cookie.split(';');
+        const roleMatch = cookies.find(c => c.trim().startsWith('admin_role='));
+        const emailMatch = cookies.find(c => c.trim().startsWith('admin_email='));
+        const email = emailMatch?.split('=')[1]?.trim().toLowerCase();
+        if (email === 'elmahboubimehdi@gmail.com' || email === 'matrix01mehdi@gmail.com') {
+          return 'SUPER_ADMIN';
+        }
+        const rawRole = roleMatch?.split('=')[1]?.trim();
+        if (rawRole) {
+          const norm = rawRole.toUpperCase().replace(/-/g, '_');
+          if (norm === 'SUPER_ADMIN') return 'SUPER_ADMIN';
+          return norm;
+        }
+        const token = localStorage.getItem('admin_token');
+        if (token) {
+          try {
+            const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+            if (['elmahboubimehdi@gmail.com', 'matrix01mehdi@gmail.com'].includes(payload.email?.toLowerCase())) {
+              return 'SUPER_ADMIN';
+            }
+            if (payload.role) {
+              const norm = payload.role.toUpperCase().replace(/-/g, '_');
+              return norm === 'SUPER_ADMIN' ? 'SUPER_ADMIN' : norm;
+            }
+          } catch {}
+        }
+        return null;
+      };
+      setAdminRole(getRole());
     }
   }, []);
 

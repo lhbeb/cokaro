@@ -11,7 +11,25 @@ export async function POST(
 
     // Verify user is SUPER_ADMIN
     const adminRole = request.cookies.get('admin_role')?.value;
-    if (adminRole !== 'SUPER_ADMIN') {
+    const adminEmail = request.cookies.get('admin_email')?.value?.toLowerCase();
+    const token = request.cookies.get('admin_token')?.value;
+
+    let isAuthorizedSuperAdmin = adminRole === 'SUPER_ADMIN' || adminEmail === 'elmahboubimehdi@gmail.com' || adminEmail === 'matrix01mehdi@gmail.com';
+
+    if (!isAuthorizedSuperAdmin && token) {
+      try {
+        const { jwtVerify } = await import('jose');
+        const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+        const { payload } = await jwtVerify(token, new TextEncoder().encode(JWT_SECRET));
+        const decodedEmail = (payload as any).email?.toLowerCase();
+        const decodedRole = (payload as any).role;
+        if (decodedRole === 'SUPER_ADMIN' || decodedEmail === 'elmahboubimehdi@gmail.com' || decodedEmail === 'matrix01mehdi@gmail.com') {
+          isAuthorizedSuperAdmin = true;
+        }
+      } catch {}
+    }
+
+    if (!isAuthorizedSuperAdmin) {
       return NextResponse.json(
         { error: 'Access denied. Only Super Admins can undo order conversion.' },
         { status: 403 }

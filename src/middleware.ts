@@ -70,11 +70,35 @@ export async function middleware(request: NextRequest) {
         return response;
       }
 
+      const isSuper = ['elmahboubimehdi@gmail.com', 'matrix01mehdi@gmail.com'].includes(decoded.email?.toLowerCase()) || decoded.role === 'SUPER_ADMIN';
+      const effectiveRole = isSuper ? 'SUPER_ADMIN' : decoded.role;
+
       // Authenticated admin, allow access
       const response = NextResponse.next();
       response.headers.set('x-pathname', pathname);
       response.headers.set('x-admin-email', decoded.email);
-      response.headers.set('x-admin-role', decoded.role);
+      response.headers.set('x-admin-role', effectiveRole);
+
+      // Auto-heal admin_role and admin_email cookies on client if needed
+      if (isSuper && request.cookies.get('admin_role')?.value !== 'SUPER_ADMIN') {
+        response.cookies.set('admin_role', 'SUPER_ADMIN', {
+          path: '/',
+          maxAge: 60 * 60 * 24 * 30,
+          sameSite: 'lax',
+          secure: process.env.NODE_ENV === 'production',
+          httpOnly: false,
+        });
+      }
+      if (!request.cookies.get('admin_email')?.value && decoded.email) {
+        response.cookies.set('admin_email', decoded.email, {
+          path: '/',
+          maxAge: 60 * 60 * 24 * 30,
+          sameSite: 'lax',
+          secure: process.env.NODE_ENV === 'production',
+          httpOnly: false,
+        });
+      }
+
       return response;
     } catch (error) {
       console.error('❌ [MIDDLEWARE] Error verifying token:', error);

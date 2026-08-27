@@ -97,12 +97,37 @@ export default function AdminProductsPage() {
 
   useEffect(() => {
     fetchProducts();
-    // Get admin role from cookie
-    const role = document.cookie
-      .split('; ')
-      .find(row => row.startsWith('admin_role='))
-      ?.split('=')[1];
-    setAdminRole(role || null);
+    // Get admin role reliably from cookies, email, or token
+    const getRole = () => {
+      const cookies = document.cookie.split(';');
+      const roleCookie = cookies.find(c => c.trim().startsWith('admin_role='));
+      const emailCookie = cookies.find(c => c.trim().startsWith('admin_email='));
+      const email = emailCookie?.split('=')[1]?.trim().toLowerCase();
+      if (email === 'elmahboubimehdi@gmail.com' || email === 'matrix01mehdi@gmail.com') {
+        return 'SUPER_ADMIN';
+      }
+      const rawRole = roleCookie?.split('=')[1]?.trim();
+      if (rawRole) {
+        const norm = rawRole.toUpperCase().replace(/-/g, '_');
+        if (norm === 'SUPER_ADMIN') return 'SUPER_ADMIN';
+        return norm;
+      }
+      const token = localStorage.getItem('admin_token');
+      if (token) {
+        try {
+          const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+          if (['elmahboubimehdi@gmail.com', 'matrix01mehdi@gmail.com'].includes(payload.email?.toLowerCase())) {
+            return 'SUPER_ADMIN';
+          }
+          if (payload.role) {
+            const norm = payload.role.toUpperCase().replace(/-/g, '_');
+            return norm === 'SUPER_ADMIN' ? 'SUPER_ADMIN' : norm;
+          }
+        } catch {}
+      }
+      return null;
+    };
+    setAdminRole(getRole());
   }, [fetchProducts]);
 
   // Close dropdown when clicking outside

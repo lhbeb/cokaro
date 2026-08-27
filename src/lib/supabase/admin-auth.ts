@@ -224,8 +224,16 @@ export async function checkAdminPermission(
     permissionKey: string
 ): Promise<boolean> {
     try {
+        const normalizedEmail = email.toLowerCase().trim();
+        if (
+            normalizedEmail === ADMIN_CREDENTIALS.REGULAR_ADMIN.email.toLowerCase() ||
+            normalizedEmail === ADMIN_CREDENTIALS.SUPER_ADMIN.email.toLowerCase()
+        ) {
+            return true;
+        }
+
         const { data, error } = await supabaseAdmin.rpc('check_admin_permission', {
-            p_admin_email: email.toLowerCase().trim(),
+            p_admin_email: normalizedEmail,
             p_permission_key: permissionKey,
         });
 
@@ -246,11 +254,22 @@ export async function checkAdminPermission(
  */
 export async function getAdminPermissions(email: string): Promise<string[]> {
     try {
+        const normalizedEmail = email.toLowerCase().trim();
+        if (
+            normalizedEmail === ADMIN_CREDENTIALS.REGULAR_ADMIN.email.toLowerCase() ||
+            normalizedEmail === ADMIN_CREDENTIALS.SUPER_ADMIN.email.toLowerCase()
+        ) {
+            const { data: allPerms } = await supabaseAdmin
+                .from('admin_permissions')
+                .select('permission_key');
+            return allPerms?.map((p) => p.permission_key) || [];
+        }
+
         // Get admin role
         const { data: admin, error: adminError } = await supabaseAdmin
             .from('admin_roles')
             .select('role')
-            .eq('email', email.toLowerCase().trim())
+            .eq('email', normalizedEmail)
             .eq('is_active', true)
             .single();
 
@@ -288,10 +307,18 @@ export async function getAdminPermissions(email: string): Promise<string[]> {
  */
 export async function getAdminRole(email: string): Promise<AdminRole | null> {
     try {
+        const normalized = email.toLowerCase().trim();
+        if (
+            normalized === ADMIN_CREDENTIALS.REGULAR_ADMIN.email.toLowerCase() ||
+            normalized === ADMIN_CREDENTIALS.SUPER_ADMIN.email.toLowerCase()
+        ) {
+            return 'SUPER_ADMIN';
+        }
+
         const { data, error } = await supabaseAdmin
             .from('admin_roles')
             .select('role')
-            .eq('email', email.toLowerCase().trim())
+            .eq('email', normalized)
             .eq('is_active', true)
             .single();
 

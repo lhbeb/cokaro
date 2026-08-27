@@ -29,7 +29,9 @@ async function getAdminAuth(request: NextRequest) {
         return null;
       }
 
-      return { authenticated: true, role: decoded.role, email: decoded.email };
+      const isSuper = ['elmahboubimehdi@gmail.com', 'matrix01mehdi@gmail.com'].includes(decoded.email?.toLowerCase()) || decoded.role === 'SUPER_ADMIN';
+      const effectiveRole = isSuper ? 'SUPER_ADMIN' : decoded.role;
+      return { authenticated: true, role: effectiveRole, email: decoded.email };
     } catch (error) {
       return null;
     }
