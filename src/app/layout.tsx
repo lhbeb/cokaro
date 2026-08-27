@@ -87,6 +87,7 @@ export default function RootLayout({
         <meta name="msvalidate.01" content="75494FC1101908256EEEA046C47C3264" />
         {/* Google Merchant Center Domain Claim Verification */}
         <meta name="google-site-verification" content="o8gC6haURQ1t7L9G8xfh_-5imCYNPmnhjnt2IrgEPco" />
+        <meta name="google-site-verification" content="whWwvqC20XmxK8qOhFgMP6wWGrqw2QYp-W-OSxNmlW8" />
       </head>
       <body suppressHydrationWarning className={`${dmSans.variable} font-sans antialiased text-[#262626]`}>
         <GlobalErrorReporter />
@@ -132,10 +133,10 @@ export default function RootLayout({
                   },
                   {
                     "@type": "PostalAddress",
-                    "streetAddress": "5850 E Raines Rd",
-                    "addressLocality": "Memphis",
-                    "addressRegion": "TN",
-                    "postalCode": "38115",
+                    "streetAddress": "305 Greif Pkwy",
+                    "addressLocality": "Delaware",
+                    "addressRegion": "OH",
+                    "postalCode": "43015",
                     "addressCountry": "US"
                   }
                 ]

@@ -270,7 +270,7 @@ export default function ReturnPolicyPage() {
                   </div>
                   <div>
                     <strong className="text-gray-900 block">US Dispatch Center:</strong>
-                    5850 E Raines Rd, Memphis, TN 38115, United States
+                    305 Greif Pkwy, Delaware, OH 43015, United States
                   </div>
                 </div>
               </div>
