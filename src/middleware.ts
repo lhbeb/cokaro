@@ -115,7 +115,8 @@ export async function middleware(request: NextRequest) {
   }
 
   // For non-admin routes, detect geolocation and set market headers
-  const country = request.geo?.country || 'US';
+  // Next.js 15+ removed request.geo, so we use Vercel's standard header
+  const country = request.headers.get('x-vercel-ip-country') || 'US';
   let market = 'us';
   if (country === 'GB') market = 'uk';
   else if (country === 'CA') market = 'ca';
