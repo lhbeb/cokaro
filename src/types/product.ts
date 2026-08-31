@@ -13,6 +13,8 @@ export interface Review {
   images?: string[]; // Array of review/unboxing images
   productTitle?: string; // Product this review belongs to
   productSlug?: string; // Product slug for linking
+  productCategory?: string; // Source product category, used for review relevance matching
+  productBrand?: string; // Source product brand, used for review relevance matching
 }
 
 export interface Product {
@@ -30,7 +32,7 @@ export interface Product {
   payeeEmail: string;
   currency: string;
   checkoutLink: string;
-  checkoutFlow?: 'buymeacoffee' | 'kofi' | 'external' | 'stripe' | 'paypal-invoice' | 'paypal-unclaimed' | 'paypal-direct' | 'paypal-api'; // Checkout flow type
+  checkoutFlow?: 'buymeacoffee' | 'kofi' | 'external' | 'stripe' | 'stripe-hosted' | 'paypal-invoice' | 'paypal-unclaimed' | 'paypal-direct' | 'paypal-api'; // Checkout flow type
   reviews?: Review[];
   meta?: {
     title?: string;
@@ -53,6 +55,11 @@ export interface Product {
     rotate_links?: boolean;
     checkout_links?: string[];
     gmc_enabled?: boolean;
+    gmc_category?: string;
+    gmc_age_group?: string;
+    gmc_color?: string;
+    gmc_gender?: string;
+    gmc_size?: string;
   };
   published?: boolean; // Extracted from meta.published for easier access
   isFeatured?: boolean;

@@ -126,6 +126,11 @@ export default function EditProductPage() {
     in_stock: true, is_featured: false, published: false, listed_by: '', seller_id: '',
     collections: [] as string[],
     targetMarket: '',
+    gmc_category: '',
+    gmc_age_group: '',
+    gmc_color: '',
+    gmc_gender: '',
+    gmc_size: '',
     hasSizes: false,
     sizes: '',
     has_mens_sizes: false,
@@ -185,6 +190,11 @@ export default function EditProductPage() {
         seller_id: data.sellerId || data.seller_id || '',
         collections: data.collections || [],
         targetMarket: data.meta?.targetMarket || '',
+        gmc_category: data.meta?.gmc_category || '',
+        gmc_age_group: data.meta?.gmc_age_group || '',
+        gmc_color: data.meta?.gmc_color || '',
+        gmc_gender: data.meta?.gmc_gender || '',
+        gmc_size: data.meta?.gmc_size || '',
         hasSizes: data.meta?.hasSizes ?? false,
         sizes: data.meta?.sizes || '',
         has_mens_sizes: data.meta?.has_mens_sizes ?? data.meta?.hasSizes ?? false,
@@ -319,6 +329,12 @@ export default function EditProductPage() {
       meta.published = formData.published;
       // Include targetMarket
       meta.targetMarket = formData.targetMarket || null;
+      // Include GMC fields
+      meta.gmc_category = formData.gmc_category || null;
+      meta.gmc_age_group = formData.gmc_age_group || null;
+      meta.gmc_color = formData.gmc_color || null;
+      meta.gmc_gender = formData.gmc_gender || null;
+      meta.gmc_size = formData.gmc_size || null;
       // Include Sizing Options
       meta.hasSizes = formData.has_mens_sizes;
       meta.sizes = formData.sizes_mens || null;
@@ -1018,6 +1034,29 @@ export default function EditProductPage() {
                 onChange={(e) => updateField('review_count', e.target.value)}
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#090A28] focus:border-[#090A28] outline-none transition-all"
               />
+            </Field>
+          </div>
+        </Section>
+
+        {/* ═══════════════════════════════════════════════════════════════
+            SECTION 3.5: Google Merchant Center (collapsed by default)
+        ═══════════════════════════════════════════════════════════════ */}
+        <Section id="gmc" icon={Globe} title="Google Merchant Center" description="Product attributes for Google feeds" defaultOpen={false}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <Field label="Google Product Category" hint="e.g. Apparel & Accessories > Clothing (ID: 166)">
+              <input type="text" value={formData.gmc_category} onChange={(e) => updateField('gmc_category', e.target.value)} placeholder="Apparel & Accessories > Clothing" className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#090A28] outline-none" />
+            </Field>
+            <Field label="Age Group" hint="newborn, infant, toddler, kids, adult">
+              <input type="text" value={formData.gmc_age_group} onChange={(e) => updateField('gmc_age_group', e.target.value)} placeholder="e.g. adult" className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#090A28] outline-none" />
+            </Field>
+            <Field label="Color" hint="Primary color of the product">
+              <input type="text" value={formData.gmc_color} onChange={(e) => updateField('gmc_color', e.target.value)} placeholder="e.g. Black" className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#090A28] outline-none" />
+            </Field>
+            <Field label="Gender" hint="male, female, unisex">
+              <input type="text" value={formData.gmc_gender} onChange={(e) => updateField('gmc_gender', e.target.value)} placeholder="e.g. unisex" className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#090A28] outline-none" />
+            </Field>
+            <Field label="Size" hint="Product size (if fixed for this listing)">
+              <input type="text" value={formData.gmc_size} onChange={(e) => updateField('gmc_size', e.target.value)} placeholder="e.g. XL" className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#090A28] outline-none" />
             </Field>
           </div>
         </Section>

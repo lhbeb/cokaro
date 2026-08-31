@@ -114,9 +114,26 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // For non-admin routes, just add pathname header
+  // For non-admin routes, detect geolocation and set market headers
+  const country = request.geo?.country || 'US';
+  let market = 'us';
+  if (country === 'GB') market = 'uk';
+  else if (country === 'CA') market = 'ca';
+  else if (country === 'AU') market = 'au';
+  else if (['DE', 'FR', 'IT', 'ES', 'NL', 'BE', 'AT', 'IE', 'PT', 'FI', 'GR', 'SE', 'DK', 'PL'].includes(country)) market = 'eu';
+
   const response = NextResponse.next();
   response.headers.set('x-pathname', pathname);
+  response.headers.set('x-user-market', market);
+  
+  response.cookies.set('user_market', market, {
+    path: '/',
+    maxAge: 60 * 60 * 24 * 30, // 30 days
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+    httpOnly: false, // allow client-side access if needed
+  });
+
   return response;
 }
 

@@ -22,12 +22,13 @@ import { STORE_FAQS } from '@/lib/storeFaqs';
 
 interface ProductPageClientProps {
   product: Product | null;
+  userMarket?: string;
 }
 
 const PRODUCT_IMAGE_QUALITY = 95;
 const COLLAPSED_FAQ_COUNT = 2;
 
-export default function ProductPageClient({ product: initialProduct }: ProductPageClientProps) {
+export default function ProductPageClient({ product: initialProduct, userMarket }: ProductPageClientProps) {
   const [imgLoaded, setImgLoaded] = useState(false);
   const router = useRouter();
   const [product, setProduct] = useState<Product | null>(initialProduct);
@@ -172,6 +173,8 @@ export default function ProductPageClient({ product: initialProduct }: ProductPa
     setImgLoaded(false);
   }, [activeImage, productImages]);
 
+  const activeMarket = getMarket(userMarket || product?.meta?.targetMarket);
+
   // Meta Pixel ViewContent Event
   useEffect(() => {
     if (product) {
@@ -180,10 +183,10 @@ export default function ProductPageClient({ product: initialProduct }: ProductPa
         content_ids: [product.slug],
         content_type: 'product',
         value: product.price,
-        currency: product.currency || 'USD'
+        currency: activeMarket.currencyCode || product.currency || 'USD'
       });
     }
-  }, [product]);
+  }, [product, activeMarket]);
 
   const handleAddToCart = async () => {
     debugLog('handleAddToCart', 'Function called', 'log');
@@ -236,6 +239,7 @@ export default function ProductPageClient({ product: initialProduct }: ProductPa
       // Add to cart - this is client-side only (localStorage)
       addToCart({
         ...product,
+        currency: activeMarket.currencyCode, // Dynamic currency override
         selectedSize: sizeValue || undefined
       } as any);
 
@@ -245,7 +249,7 @@ export default function ProductPageClient({ product: initialProduct }: ProductPa
         content_ids: [product.slug],
         content_type: 'product',
         value: product.price,
-        currency: product.currency || 'USD'
+        currency: activeMarket.currencyCode || product.currency || 'USD'
       });
 
       // Send Telegram notification for "Add to Cart" action
@@ -357,6 +361,7 @@ export default function ProductPageClient({ product: initialProduct }: ProductPa
 
       addToCart({
         ...product,
+        currency: activeMarket.currencyCode, // Dynamic currency override
         selectedSize: sizeValue || undefined
       } as any);
 
@@ -366,7 +371,7 @@ export default function ProductPageClient({ product: initialProduct }: ProductPa
         content_ids: [product.slug],
         content_type: 'product',
         value: product.price,
-        currency: product.currency || 'USD'
+        currency: activeMarket.currencyCode || product.currency || 'USD'
       });
 
       // Redirect to checkout after adding to cart
@@ -613,12 +618,12 @@ export default function ProductPageClient({ product: initialProduct }: ProductPa
               )}
               <div className="mt-4 flex flex-wrap items-baseline gap-3">
                 <span className="text-4xl font-bold text-[#262626]">
-                  {formatMarketPrice(price, getMarket(product?.meta?.targetMarket))}
+                  {formatMarketPrice(price, activeMarket)}
                 </span>
                 {original_price && original_price > price && (
                   <>
                     <span className="text-xl text-gray-400 line-through font-medium">
-                      {formatMarketPrice(original_price, getMarket(product?.meta?.targetMarket))}
+                      {formatMarketPrice(original_price, activeMarket)}
                     </span>
                     <span className="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-semibold text-green-700 ring-1 ring-inset ring-green-600/20">
                       {Math.round((1 - price / original_price) * 100)}% OFF

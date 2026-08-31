@@ -3,6 +3,8 @@ import { getReviewProduct, isReviewProduct } from '@/lib/reviewProducts';
 import { getSellerById } from '@/lib/supabase/sellers';
 import { formatValidSku, mapConditionToSchema } from '@/lib/conditions';
 import { notFound } from 'next/navigation';
+import { headers } from 'next/headers';
+import { getMarket } from '@/lib/markets';
 import ProductPageClient from './ProductPageClient';
 import type { Metadata, ResolvingMetadata } from 'next';
 
@@ -24,7 +26,12 @@ export async function generateMetadata(
     const title = `${product.title || 'Product'} - ${product.brand || ''} | ${product.category || ''} | Cokaro`;
     const description = (product.description || '').substring(0, 155) + '...';
     const canonicalUrl = `${BASE_URL}/products/${product.slug}`;
-    const currencyCode = product.currency || 'USD';
+    
+    const headersList = await headers();
+    const userMarketKey = headersList.get('x-user-market') || 'us';
+    const activeMarket = getMarket(userMarketKey);
+    
+    const currencyCode = activeMarket.currencyCode;
     const price = (product.price || 0).toFixed(2);
     const inStock = product.inStock !== false;
 
@@ -76,6 +83,9 @@ export async function generateMetadata(
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
   try {
     const { slug } = await params;
+    const headersList = await headers();
+    const userMarketKey = headersList.get('x-user-market') || 'us';
+    const activeMarket = getMarket(userMarketKey);
 
     if (!slug || typeof slug !== 'string') {
       notFound();
@@ -135,7 +145,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       "offers": {
         "@type": "Offer",
         "price": p.price || 0,
-        "priceCurrency": p.currency || "USD",
+        "priceCurrency": activeMarket.currencyCode,
         "validFrom": new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
         "priceValidUntil": priceValidUntil.toISOString().slice(0, 10),
         "availability": inStock
@@ -267,7 +277,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
         />
-        <ProductPageClient product={p} />
+        <ProductPageClient product={p} userMarket={userMarketKey} />
       </>
     );
   } catch (error) {
