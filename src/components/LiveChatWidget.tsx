@@ -19,7 +19,7 @@ export default function LiveChatWidget() {
       id="live-chat-script"
       src={LIVECHAT_SCRIPT_SRC}
       strategy="lazyOnload"
-      data-color="#007bff"
+      data-color="#0a3075"
       data-position="bottom-right"
       data-button-size="60"
       data-label="Chat with us"
