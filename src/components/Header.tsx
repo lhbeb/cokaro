@@ -374,7 +374,7 @@ const Header = () => {
         <div suppressHydrationWarning={true} className="lg:hidden bg-[#f3f4f6] border-t border-[#0a3075]/10">
           <div suppressHydrationWarning={true} className="overflow-x-auto scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' }}>
             <nav className="flex min-w-max items-center gap-3 bg-[#f3f4f6] px-4 py-3">
-              {catalogNavigation.map((item) => (
+              {dynamicCategories.map((item) => (
                 <Link
                   key={item.label}
                   href={item.href}
