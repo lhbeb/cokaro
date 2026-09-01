@@ -10,9 +10,6 @@ import type { Product } from '@/types/product';
 import ClientOnly from './ClientOnly';
 import SearchBar from './SearchBar';
 
-const catalogNavigation = [
-  { label: 'All Products', href: '/search' },
-] as const;
 
 const desktopNavLinkClass =
   'relative py-1 text-sm font-medium text-[#003099] transition-colors duration-200 hover:text-[#4575ba] focus-visible:text-[#4575ba] focus-visible:outline-none after:absolute after:inset-x-0 after:-bottom-0.5 after:h-0.5 after:origin-center after:scale-x-0 after:rounded-full after:bg-[#4575ba] after:transition-transform after:duration-200 hover:after:scale-x-100 focus-visible:after:scale-x-100';
@@ -21,8 +18,29 @@ const mobileMenuLinkClass =
   'text-center font-medium text-[#003099] transition-colors duration-200 hover:text-[#4575ba] focus-visible:text-[#4575ba] focus-visible:outline-none';
 
 const Header = () => {
+  const [dynamicCategories, setDynamicCategories] = useState<{label: string, href: string}[]>([
+    { label: 'All Products', href: '/search' }
+  ]);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+
+  useEffect(() => {
+    fetch('/api/categories')
+      .then(res => res.json())
+      .then(cats => {
+        if (Array.isArray(cats) && cats.length > 0) {
+           const links = cats.map(c => ({
+             label: c,
+             href: `/search?category=${encodeURIComponent(c)}`
+           }));
+           setDynamicCategories([
+             { label: 'All Products', href: '/search' },
+             ...links
+           ]);
+        }
+      })
+      .catch(e => console.error('Failed to fetch categories', e));
+  }, []);
   const [cartCount, setCartCount] = useState(0);
   const [isSticky, setIsSticky] = useState(false);
   const [currentAnnouncement, setCurrentAnnouncement] = useState(0);
@@ -303,7 +321,7 @@ const Header = () => {
         <div suppressHydrationWarning={true} className="hidden lg:block bg-[#f3f4f6] border-t border-[#0a3075]/10">
           <div suppressHydrationWarning={true} className="container mx-auto px-4">
             <nav className="flex items-center gap-6 bg-[#f3f4f6] py-3 font-heading">
-              {catalogNavigation.map((item) => (
+              {dynamicCategories.map((item) => (
                 <Link
                   key={item.label}
                   href={item.href}
