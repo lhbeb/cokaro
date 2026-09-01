@@ -5,7 +5,7 @@ import Script from 'next/script';
 
 const LIVECHAT_SCRIPT_SRC = "https://chatapppay-rust.vercel.app/livechat.js";
 
-export default function TidioChat() {
+export default function LiveChatWidget() {
   const pathname = usePathname();
   const isAdminRoute = pathname?.startsWith('/admin');
   const isCheckoutRoute = pathname?.startsWith('/checkout');
