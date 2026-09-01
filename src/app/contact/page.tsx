@@ -42,28 +42,18 @@ export default function ContactPage() {
             '@type': 'ContactPoint',
             'telephone': '+19129231747',
             'contactType': 'customer service',
-            'areaServed': ['US', 'GB'],
+            'areaServed': 'US',
             'availableLanguage': ['en'],
           },
         ],
-        'address': [
-          {
-            '@type': 'PostalAddress',
-            'streetAddress': 'Choats Rd',
-            'addressLocality': 'Barking',
-            'addressRegion': 'Dagenham',
-            'postalCode': 'RM9 6BF',
-            'addressCountry': 'GB',
-          },
-          {
-            '@type': 'PostalAddress',
+        'address': {
+          '@type': 'PostalAddress',
             'streetAddress': '305 Greif Pkwy',
             'addressLocality': 'Delaware',
             'addressRegion': 'OH',
             'postalCode': '43015',
             'addressCountry': 'US',
-          },
-        ],
+        },
       },
     ],
   };
@@ -220,13 +210,7 @@ export default function ContactPage() {
                 <div className="bg-gray-50 p-6 rounded-lg">
                   <h2 className="text-xl font-bold text-[#262626] mb-6">Get in Touch</h2>
                   <div className="space-y-6">
-                    <div className="flex items-start">
-                      <Building2 className="h-6 w-6 text-[#090A28] mt-1 shrink-0" />
-                      <div className="ml-4">
-                        <h3 className="font-medium text-[#262626]">UK Registered Office</h3>
-                        <p className="text-gray-600 mt-1">Choats Rd, Barking, Dagenham RM9 6BF, United Kingdom</p>
-                      </div>
-                    </div>
+
                     <div className="flex items-start">
                       <MapPin className="h-6 w-6 text-[#090A28] mt-1 shrink-0" />
                       <div className="ml-4">

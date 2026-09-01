@@ -54,7 +54,7 @@ const Header = () => {
   const isCheckoutPage = pathname === '/checkout';
 
   const announcements = [
-    <span key="nav-1">🚚 <span className="font-bold">Free Shipping</span> Across North America and the UK 🇬🇧</span>,
+    <span key="nav-1">🚚 <span className="font-bold">Free Shipping</span> Across North America</span>,
     <span key="nav-2">📦 <span className="font-bold">Free Returns</span> for <span className="font-bold">30 Days</span></span>,
     "whatsapp-contact" // Special marker for WhatsApp announcement
   ];

@@ -264,10 +264,7 @@ export default function ReturnPolicyPage() {
                   <span>Our Addresses</span>
                 </div>
                 <div className="text-sm text-gray-600 pl-7 space-y-2">
-                  <div>
-                    <strong className="text-gray-900 block">UK Registered Office:</strong>
-                    Choats Rd, Barking, Dagenham RM9 6BF, United Kingdom
-                  </div>
+
                   <div>
                     <strong className="text-gray-900 block">US Dispatch Center:</strong>
                     305 Greif Pkwy, Delaware, OH 43015, United States

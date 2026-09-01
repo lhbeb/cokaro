@@ -139,26 +139,16 @@ export default function RootLayout({
                   "contactType": "customer service",
                   "email": "contact@cokaro.com",
                   "telephone": "+19129231747",
-                  "areaServed": ["GB", "US"]
+                  "areaServed": "US"
                 },
-                "address": [
-                  {
-                    "@type": "PostalAddress",
-                    "streetAddress": "Choats Rd",
-                    "addressLocality": "Barking",
-                    "addressRegion": "Dagenham",
-                    "postalCode": "RM9 6BF",
-                    "addressCountry": "GB"
-                  },
-                  {
-                    "@type": "PostalAddress",
-                    "streetAddress": "305 Greif Pkwy",
-                    "addressLocality": "Delaware",
-                    "addressRegion": "OH",
-                    "postalCode": "43015",
-                    "addressCountry": "US"
-                  }
-                ]
+                "address": {
+                  "@type": "PostalAddress",
+                  "streetAddress": "305 Greif Pkwy",
+                  "addressLocality": "Delaware",
+                  "addressRegion": "OH",
+                  "postalCode": "43015",
+                  "addressCountry": "US"
+                }
               })
             }}
           />

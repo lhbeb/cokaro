@@ -110,10 +110,7 @@ const CookiesPage = () => (
               <div className="font-medium text-[#262626] mb-1">Email:</div>
               <div className="text-gray-600">contact@cokaro.com</div>
             </div>
-            <div>
-              <div className="font-medium text-[#262626] mb-1">UK Registered Office:</div>
-              <div className="text-gray-600">Choats Rd, Barking, Dagenham RM9 6BF, United Kingdom</div>
-            </div>
+
             <div>
               <div className="font-medium text-[#262626] mb-1">US Dispatch Center:</div>
               <div className="text-gray-600">305 Greif Pkwy, Delaware, OH 43015, United States</div>

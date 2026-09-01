@@ -52,24 +52,13 @@ export default function AboutPage() {
           'Ecommerce store serving the United Kingdom and United States with lawn mowers, power tools, portable generators, and garden essentials.',
         'email': 'contact@cokaro.com',
         'telephone': ['+19129231747'],
-        'address': [
-          {
-            '@type': 'PostalAddress',
-            'streetAddress': 'Choats Rd',
-            'addressLocality': 'Barking',
-            'addressRegion': 'Dagenham',
-            'postalCode': 'RM9 6BF',
-            'addressCountry': 'GB',
-          },
-          {
-            '@type': 'PostalAddress',
+        'address': {
+          '@type': 'PostalAddress',
             'streetAddress': '305 Greif Pkwy',
             'addressLocality': 'Delaware',
             'addressRegion': 'OH',
-            'postalCode': '43015',
             'addressCountry': 'US',
-          },
-        ],
+        },
         'contactPoint': [
           {
             '@type': 'ContactPoint',
@@ -397,13 +386,7 @@ export default function AboutPage() {
             <h3 className="text-2xl font-bold text-[#262626]">Contact Information</h3>
           </div>
           <div className="grid md:grid-cols-2 gap-6">
-            <div className="bg-[#F0F6FF] rounded-xl p-6 border border-[#0a3075]/10">
-              <div className="flex items-center gap-3 mb-3">
-                <MapPin className="h-5 w-5 text-[#0a3075]" />
-                <div className="font-medium text-[#262626]">UK Registered Office</div>
-              </div>
-              <div className="text-gray-600 ml-8">Choats Rd, Barking, Dagenham RM9 6BF, United Kingdom</div>
-            </div>
+
             <div className="bg-[#F0F6FF] rounded-xl p-6 border border-[#0a3075]/10">
               <div className="flex items-center gap-3 mb-3">
                 <MapPin className="h-5 w-5 text-[#0a3075]" />

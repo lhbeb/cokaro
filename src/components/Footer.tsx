@@ -37,13 +37,7 @@ const Footer = () => {
                   contact@cokaro.com
                 </a>
               </div>
-              <div className="flex items-start">
-                <MapPin className="h-5 w-5 shrink-0 text-[#4575ba] mr-2 mt-1" />
-                <div>
-                  <span className="block font-semibold text-white">UK Registered Office</span>
-                  <span>Choats Rd, Barking, Dagenham RM9 6BF, United Kingdom</span>
-                </div>
-              </div>
+
               <div className="flex items-start">
                 <MapPin className="h-5 w-5 shrink-0 text-[#4575ba] mr-2 mt-1" />
                 <div>
