@@ -421,6 +421,52 @@ export default function AdminProductsPage() {
     }
   };
 
+  const handleEnableGmcAllFiltered = async () => {
+    if (!confirm(`Are you sure you want to enable GMC for all ${filteredProducts.length} products currently shown?`)) return;
+    
+    setBulkUpdatingGmc('include');
+    setError('');
+
+    try {
+      const token = localStorage.getItem('admin_token');
+      const response = await fetch('/api/admin/products/bulk-gmc', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` }),
+        },
+        body: JSON.stringify({
+          slugs: filteredProducts.map(p => p.slug),
+          enabled: true,
+        }),
+      });
+
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to update GMC products');
+      }
+
+      const updatedSlugs = new Set<string>(result.updatedSlugs || []);
+      const applyGmcStatus = (item: Product): Product =>
+        updatedSlugs.has(item.slug)
+          ? { ...item, meta: { ...(item.meta || {}), gmc_enabled: true } }
+          : item;
+
+      setProducts((previous) => previous.map(applyGmcStatus));
+      setFilteredProducts((previous) => previous.map(applyGmcStatus));
+
+      if (result.failedCount > 0) {
+        setError(`${result.updatedCount} products updated; ${result.failedCount} failed.`);
+      } else {
+         setError('');
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to update GMC products');
+    } finally {
+      setBulkUpdatingGmc(null);
+    }
+  };
+
   const handleToggleSelect = (slug: string) => {
     setSelectedProducts(prev => {
       const newSet = new Set(prev);
@@ -1014,6 +1060,23 @@ export default function AdminProductsPage() {
               )}
               <span className="font-medium">{exportingGoogleCSV ? 'Exporting...' : 'Export Google GMC CSV'}</span>
             </button>
+
+            {/* Enable GMC for All (when nothing is explicitly selected) */}
+            {selectedProducts.size === 0 && (
+              <button
+                onClick={handleEnableGmcAllFiltered}
+                disabled={bulkUpdatingGmc !== null || filteredProducts.length === 0}
+                className="inline-flex items-center justify-center gap-2 px-3 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors shadow-lg shadow-blue-500/25 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap text-sm shrink-0"
+                title="Enable GMC for all currently filtered products"
+              >
+                {bulkUpdatingGmc === 'include' ? (
+                  <RefreshCw className="h-4 w-4 animate-spin" />
+                ) : (
+                  <PackageCheck className="h-4 w-4" />
+                )}
+                <span className="font-medium">Enable GMC on All</span>
+              </button>
+            )}
 
             {/* Selected items actions */}
             {selectedProducts.size > 0 && (
