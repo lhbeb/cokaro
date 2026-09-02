@@ -193,7 +193,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                 "minValue": 5,
                 "maxValue": 9,
                 "unitCode": "DAY"
-              }
+              },
+              "cutoffTime": "14:00:00-05:00"
             }
           },
           {
@@ -220,7 +221,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                 "minValue": 5,
                 "maxValue": 9,
                 "unitCode": "DAY"
-              }
+              },
+              "cutoffTime": "14:00:00-05:00"
             }
           }
         ]
