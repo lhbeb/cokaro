@@ -190,6 +190,16 @@ const SCRIPTS: ScriptCard[] = [
             sellerId: 'e.g. official-cokaro',
         },
     },
+    {
+        id: 'publish-all-drafts',
+        name: 'Publish All Drafts',
+        description:
+            'Finds all products currently saved as Draft and marks them as Published. ' +
+            'Use Preview first to see how many drafts will be affected before running.',
+        danger: false,
+        params: {},
+        paramLabels: {},
+    },
 ];
 
 
@@ -415,6 +425,11 @@ function ScriptCardComponent({ script }: { script: ScriptCard }) {
                                                 <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Old Flow</th>
                                                 <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">New Flow</th>
                                             </>
+                                        ) : 'oldStatus' in (response.results[0] ?? {}) ? (
+                                            <>
+                                                <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Previous Status</th>
+                                                <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">New Status</th>
+                                            </>
                                         ) : (
                                             <>
                                                 <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Old Link</th>
@@ -469,6 +484,15 @@ function ScriptCardComponent({ script }: { script: ScriptCard }) {
                                                     </td>
                                                     <td className="px-4 py-3">
                                                         <span className="inline-block px-2 py-0.5 bg-[#090A28]/10 text-[#090A28] rounded text-xs font-mono">{row.newFlow}</span>
+                                                    </td>
+                                                </>
+                                            ) : 'oldStatus' in row ? (
+                                                <>
+                                                    <td className="px-4 py-3">
+                                                        <span className="inline-block px-2 py-0.5 bg-amber-50 text-amber-700 rounded text-xs font-medium">{row.oldStatus}</span>
+                                                    </td>
+                                                    <td className="px-4 py-3">
+                                                        <span className="inline-block px-2 py-0.5 bg-green-50 text-green-700 rounded text-xs font-medium">{row.newStatus}</span>
                                                     </td>
                                                 </>
                                             ) : (

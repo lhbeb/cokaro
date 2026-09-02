@@ -34,6 +34,14 @@ interface ScriptResult {
     updated: boolean;
 }
 
+interface PublishDraftResult {
+    slug: string;
+    title: string;
+    oldStatus: string;
+    newStatus: string;
+    updated: boolean;
+}
+
 interface FlowResult {
     slug: string;
     title: string;
@@ -397,6 +405,56 @@ async function runBulkAssignUnassignedSeller(
     return { affected: affected.length, results: affected };
 }
 
+/**
+ * Script: publish-all-drafts
+ * Finds all products where meta->'published' is false and sets it to true.
+ */
+async function runPublishAllDrafts(
+    dryRun: boolean
+): Promise<{ affected: number; results: PublishDraftResult[] }> {
+    const { data, error } = await supabaseAdmin.from('products').select('id, slug, title, meta');
+    
+    if (error) throw new Error(`Failed to fetch products: ${error.message}`);
+    
+    const products = data || [];
+    const affected: PublishDraftResult[] = [];
+    
+    for (const p of products) {
+        const meta = p.meta || {};
+        if (meta.published === false) {
+            affected.push({
+                slug: p.slug,
+                title: p.title,
+                oldStatus: 'Draft',
+                newStatus: 'Published',
+                updated: false,
+            });
+        }
+    }
+    
+    if (!dryRun && affected.length > 0) {
+        for (const p of products) {
+            const meta = p.meta || {};
+            if (meta.published === false) {
+                const newMeta = { ...meta, published: true };
+                const { error: updateError } = await supabaseAdmin
+                    .from('products')
+                    .update({ meta: newMeta, updated_at: new Date().toISOString() })
+                    .eq('id', p.id);
+                    
+                if (updateError) {
+                    console.error(`❌ Failed to publish ${p.slug}:`, updateError.message);
+                } else {
+                    const item = affected.find(a => a.slug === p.slug);
+                    if (item) item.updated = true;
+                }
+            }
+        }
+    }
+    
+    return { affected: affected.length, results: affected };
+}
+
 // ─── POST handler ──────────────────────────────────────────────────────────────
 export async function POST(request: NextRequest) {
     try {
@@ -623,6 +681,20 @@ export async function POST(request: NextRequest) {
                     message: dryRun
                         ? `Preview: ${result.affected} unassigned product(s) would be assigned to seller "${sellerRow.name}" (${resolvedSellerId})`
                         : `Done: ${result.results.filter(r => r.updated).length} unassigned product(s) assigned to seller "${sellerRow.name}"`,
+                });
+            }
+
+            case 'publish-all-drafts': {
+                const result = await runPublishAllDrafts(dryRun);
+
+                return NextResponse.json({
+                    scriptId,
+                    dryRun,
+                    affected: result.affected,
+                    results: result.results,
+                    message: dryRun
+                        ? `Preview: ${result.affected} draft product(s) would be published`
+                        : `Done: ${result.results.filter(r => r.updated).length} draft product(s) published`,
                 });
             }
 

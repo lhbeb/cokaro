@@ -4,6 +4,7 @@ import { Clock, Mail, MapPin, PackageCheck, ShieldCheck, Truck } from 'lucide-re
 
 export const metadata: Metadata = {
   title: 'Shipping Policy | Cokaro',
+  description:
     'Official Cokaro Shipping Policy. Free standard shipping across the United States. Same-day processing for orders placed before 2:00 PM EST.',
 };
 
