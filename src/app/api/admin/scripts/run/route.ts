@@ -146,7 +146,9 @@ async function runBulkUpdateCheckoutFlow(
 ): Promise<{ affected: number; results: FlowResult[] }> {
     // Build query — optionally filter by current flow
     let query = supabaseAdmin.from('products').select('slug, title, checkout_flow');
-    if (fromFlow !== 'all') {
+    if (fromFlow === 'not_assigned') {
+        query = query.is('checkout_flow', null);
+    } else if (fromFlow !== 'all') {
         query = query.eq('checkout_flow', fromFlow);
     }
 
@@ -178,6 +180,18 @@ async function runBulkUpdateCheckoutFlow(
 
             if (updateError) {
                 console.error('❌ Bulk flow update failed:', updateError.message);
+            } else {
+                affected.forEach(item => (item.updated = true));
+            }
+        } else if (fromFlow === 'not_assigned') {
+            // Update products where checkout_flow is null
+            const { error: updateError } = await supabaseAdmin
+                .from('products')
+                .update(updatePayload)
+                .is('checkout_flow', null);
+
+            if (updateError) {
+                console.error('❌ Bulk flow update (not_assigned) failed:', updateError.message);
             } else {
                 affected.forEach(item => (item.updated = true));
             }

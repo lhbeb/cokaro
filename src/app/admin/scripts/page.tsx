@@ -76,12 +76,13 @@ const SCRIPTS: ScriptCard[] = [
             toFlow: 'Switch their flow to',
         },
         paramOptions: {
-            fromFlow: ['all', ...CHECKOUT_FLOWS],
+            fromFlow: ['all', 'not_assigned', ...CHECKOUT_FLOWS],
             toFlow: CHECKOUT_FLOWS,
         },
         paramOptionLabels: {
             fromFlow: {
                 all: 'All flows',
+                not_assigned: '❌ Not assigned (null)',
                 buymeacoffee: '☕ Buy Me a Coffee',
                 stripe: '💳 Stripe',
                 kofi: '☕ Ko-fi',
