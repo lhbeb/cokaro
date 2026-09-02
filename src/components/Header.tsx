@@ -320,28 +320,17 @@ const Header = () => {
         {/* Navigation Bar */}
         <div suppressHydrationWarning={true} className="hidden lg:block bg-[#f3f4f6] border-t border-[#0a3075]/10">
           <div suppressHydrationWarning={true} className="container mx-auto px-4">
-            <nav className="flex items-center gap-6 bg-[#f3f4f6] py-3 font-heading">
-              {dynamicCategories.map((item) => (
-                <Link
-                  key={item.label}
-                  href={item.href}
-                  className={desktopNavLinkClass}
-                >
-                  {item.label}
-                </Link>
-              ))}
-              <Link href="/#featured" className={desktopNavLinkClass}>
-                Featured
-              </Link>
-              <Link href="/track" className={desktopNavLinkClass}>
-                Track Order
-              </Link>
-              <Link href="/frequently-asked-questions" className={desktopNavLinkClass}>
-                FAQs
-              </Link>
-              <Link href="/contact" className={desktopNavLinkClass}>
-                Contact us
-              </Link>
+            <nav className="flex items-center gap-6 bg-[#f3f4f6] py-3 font-heading overflow-x-auto scrollbar-hide">
+              <Link href="/search" className={desktopNavLinkClass}>All Products</Link>
+              <Link href="/search?category=Lawn+Mowers" className={desktopNavLinkClass}>Lawn Mowers</Link>
+              <Link href="/search?category=Power+Equipment" className={desktopNavLinkClass}>Power Equipment</Link>
+              <Link href="/search?category=Pressure+Washers" className={desktopNavLinkClass}>Pressure Washers</Link>
+              <Link href="/search?category=Swimming+Pools" className={desktopNavLinkClass}>Swimming Pools</Link>
+              <Link href="/search?category=Blowers" className={desktopNavLinkClass}>Blowers</Link>
+              <Link href="/search?category=Bikes" className={desktopNavLinkClass}>Bikes</Link>
+              <Link href="/#featured" className={desktopNavLinkClass}>Featured</Link>
+              <Link href="/track" className={desktopNavLinkClass}>Track Order</Link>
+              <Link href="/contact" className={desktopNavLinkClass}>Contact</Link>
             </nav>
           </div>
         </div>
@@ -369,12 +358,23 @@ const Header = () => {
         <SearchBar open={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
       </header>
 
-      {/* Mobile Swipeable Menu - Outside header, stays at top of page (hidden on checkout page) */}
+      {/* Mobile Swipeable Menu */}
       {!isCheckoutPage && (
         <div suppressHydrationWarning={true} className="lg:hidden bg-[#f3f4f6] border-t border-[#0a3075]/10">
           <div suppressHydrationWarning={true} className="overflow-x-auto scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' }}>
             <nav className="flex min-w-max items-center gap-3 bg-[#f3f4f6] px-4 py-3">
-              {dynamicCategories.map((item) => (
+              {[
+                { label: 'All Products', href: '/search' },
+                { label: 'Lawn Mowers', href: '/search?category=Lawn+Mowers' },
+                { label: 'Power Equipment', href: '/search?category=Power+Equipment' },
+                { label: 'Pressure Washers', href: '/search?category=Pressure+Washers' },
+                { label: 'Swimming Pools', href: '/search?category=Swimming+Pools' },
+                { label: 'Blowers', href: '/search?category=Blowers' },
+                { label: 'Bikes', href: '/search?category=Bikes' },
+                { label: 'Featured', href: '/#featured' },
+                { label: 'Track Order', href: '/track' },
+                { label: 'Contact', href: '/contact' },
+              ].map((item) => (
                 <Link
                   key={item.label}
                   href={item.href}
@@ -383,12 +383,6 @@ const Header = () => {
                   {item.label}
                 </Link>
               ))}
-              <Link
-                href="/#featured"
-                className="flex-shrink-0 px-4 py-2 border border-[#0a3075]/20 rounded-full text-sm font-medium text-[#003099] hover:border-[#0a3075]/40 hover:bg-[#0a3075]/5 transition-colors duration-300 whitespace-nowrap"
-              >
-                Featured
-              </Link>
             </nav>
           </div>
         </div>
