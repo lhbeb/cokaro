@@ -192,6 +192,16 @@ const SCRIPTS: ScriptCard[] = [
         },
     },
     {
+        id: 'disable-gmc-all',
+        name: 'Disable GMC for All Products',
+        description:
+            'Finds all products currently enabled for Google Merchant Center (meta.gmc_enabled is true) and sets them to disabled, excluding them from the Google Shopping feed. ' +
+            'Use Preview first to see how many products will be affected before running.',
+        danger: true,
+        params: {},
+        paramLabels: {},
+    },
+    {
         id: 'draft-all-products',
         name: 'Draft All Products',
         description:
@@ -500,10 +510,10 @@ function ScriptCardComponent({ script }: { script: ScriptCard }) {
                                             ) : 'oldStatus' in row ? (
                                                 <>
                                                     <td className="px-4 py-3">
-                                                        <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${row.oldStatus === 'Draft' ? 'bg-amber-50 text-amber-700' : 'bg-green-50 text-green-700'}`}>{row.oldStatus}</span>
+                                                        <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${row.oldStatus === 'Draft' || row.oldStatus.includes('Disabled') ? 'bg-amber-50 text-amber-700' : 'bg-green-50 text-green-700'}`}>{row.oldStatus}</span>
                                                     </td>
                                                     <td className="px-4 py-3">
-                                                        <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${row.newStatus === 'Published' ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'}`}>{row.newStatus}</span>
+                                                        <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${row.newStatus === 'Published' || row.newStatus.includes('Enabled') ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'}`}>{row.newStatus}</span>
                                                     </td>
                                                 </>
                                             ) : (

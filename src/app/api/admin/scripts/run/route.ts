@@ -543,6 +543,52 @@ async function runPublishAllDrafts(
     return { affected: affected.length, results: affected };
 }
 
+/**
+ * Script: disable-gmc-all
+ * Finds all products where meta->'gmc_enabled' is true and sets it to false.
+ */
+async function runDisableGmcAll(
+    dryRun: boolean
+): Promise<{ affected: number; results: PublishDraftResult[] }> {
+    const products = await fetchAllProductsForStatus();
+    const affected: PublishDraftResult[] = [];
+
+    for (const p of products) {
+        const meta = p.meta || {};
+        if (meta.gmc_enabled === true) {
+            affected.push({
+                slug: p.slug,
+                title: p.title,
+                oldStatus: 'GMC Enabled',
+                newStatus: 'GMC Disabled',
+                updated: false,
+            });
+        }
+    }
+
+    if (!dryRun && affected.length > 0) {
+        for (const p of products) {
+            const meta = p.meta || {};
+            if (meta.gmc_enabled === true) {
+                const newMeta = { ...meta, gmc_enabled: false };
+                const { error: updateError } = await supabaseAdmin
+                    .from('products')
+                    .update({ meta: newMeta, updated_at: new Date().toISOString() })
+                    .eq('id', p.id);
+
+                if (updateError) {
+                    console.error(`❌ Failed to disable GMC for ${p.slug}:`, updateError.message);
+                } else {
+                    const item = affected.find(a => a.slug === p.slug);
+                    if (item) item.updated = true;
+                }
+            }
+        }
+    }
+
+    return { affected: affected.length, results: affected };
+}
+
 // ─── POST handler ──────────────────────────────────────────────────────────────
 export async function POST(request: NextRequest) {
     try {
@@ -797,6 +843,20 @@ export async function POST(request: NextRequest) {
                     message: dryRun
                         ? `Preview: ${result.affected} draft product(s) would be published`
                         : `Done: ${result.results.filter(r => r.updated).length} draft product(s) published`,
+                });
+            }
+
+            case 'disable-gmc-all': {
+                const result = await runDisableGmcAll(dryRun);
+
+                return NextResponse.json({
+                    scriptId,
+                    dryRun,
+                    affected: result.affected,
+                    results: result.results,
+                    message: dryRun
+                        ? `Preview: ${result.affected} product(s) would have GMC disabled`
+                        : `Done: ${result.results.filter(r => r.updated).length} product(s) had GMC disabled`,
                 });
             }
 
