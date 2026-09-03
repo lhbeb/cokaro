@@ -12,6 +12,7 @@
     "test-login": "tsx scripts/test-admin-login.ts",
     "create-admin": "tsx scripts/create-admin-user.ts",
     "import-products": "tsx scripts/import-products-with-images.ts",
+    "scrape:aio-vita": "node scripts/scrape-aio-vita.js",
     "products:pull-content": "tsx scripts/sync-product-content.ts pull",
     "products:push-content": "tsx scripts/sync-product-content.ts push",
     "test-order": "tsx scripts/test-order-flow.ts"
@@ -47,7 +48,9 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/yauzl": "^2.10.3",
+    "@vitalets/google-translate-api": "^9.2.1",
     "autoprefixer": "^10.4.21",
+    "cheerio": "^1.2.0",
     "eslint": "^9",
     "eslint-config-next": "15.5.7",
     "postcss": "^8.5.6",

@@ -325,7 +325,6 @@ const Header = () => {
               <Link href="/search?category=Lawn+Mowers" className={desktopNavLinkClass}>Lawn Mowers</Link>
               <Link href="/search?category=Power+Equipment" className={desktopNavLinkClass}>Power Equipment</Link>
               <Link href="/search?category=Pressure+Washers" className={desktopNavLinkClass}>Pressure Washers</Link>
-              <Link href="/search?category=Swimming+Pools" className={desktopNavLinkClass}>Swimming Pools</Link>
               <Link href="/search?category=Blowers" className={desktopNavLinkClass}>Blowers</Link>
               <Link href="/search?category=Bikes" className={desktopNavLinkClass}>Bikes</Link>
               <Link href="/#featured" className={desktopNavLinkClass}>Featured</Link>
@@ -368,7 +367,6 @@ const Header = () => {
                 { label: 'Lawn Mowers', href: '/search?category=Lawn+Mowers' },
                 { label: 'Power Equipment', href: '/search?category=Power+Equipment' },
                 { label: 'Pressure Washers', href: '/search?category=Pressure+Washers' },
-                { label: 'Swimming Pools', href: '/search?category=Swimming+Pools' },
                 { label: 'Blowers', href: '/search?category=Blowers' },
                 { label: 'Bikes', href: '/search?category=Bikes' },
                 { label: 'Featured', href: '/#featured' },

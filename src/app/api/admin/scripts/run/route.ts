@@ -419,6 +419,84 @@ async function runBulkAssignUnassignedSeller(
     return { affected: affected.length, results: affected };
 }
 
+async function fetchAllProductsForStatus(): Promise<Array<{ id: string; slug: string; title: string; meta: any }>> {
+    let allRows: any[] = [];
+    let page = 0;
+    const pageSize = 1000;
+    let hasMore = true;
+
+    while (hasMore) {
+        const from = page * pageSize;
+        const to = from + pageSize - 1;
+
+        const { data, error } = await supabaseAdmin
+            .from('products')
+            .select('id, slug, title, meta')
+            .range(from, to);
+
+        if (error) throw new Error(`Failed to fetch products: ${error.message}`);
+
+        if (data && data.length > 0) {
+            allRows = allRows.concat(data);
+            if (data.length < pageSize) {
+                hasMore = false;
+            } else {
+                page++;
+            }
+        } else {
+            hasMore = false;
+        }
+    }
+
+    return allRows;
+}
+
+/**
+ * Script: draft-all-products
+ * Finds all products where meta->'published' is not false (i.e. Published) and sets it to false (Draft).
+ */
+async function runDraftAllProducts(
+    dryRun: boolean
+): Promise<{ affected: number; results: PublishDraftResult[] }> {
+    const products = await fetchAllProductsForStatus();
+    const affected: PublishDraftResult[] = [];
+
+    for (const p of products) {
+        const meta = p.meta || {};
+        if (meta.published !== false) {
+            affected.push({
+                slug: p.slug,
+                title: p.title,
+                oldStatus: 'Published',
+                newStatus: 'Draft',
+                updated: false,
+            });
+        }
+    }
+
+    if (!dryRun && affected.length > 0) {
+        for (const p of products) {
+            const meta = p.meta || {};
+            if (meta.published !== false) {
+                const newMeta = { ...meta, published: false };
+                const { error: updateError } = await supabaseAdmin
+                    .from('products')
+                    .update({ meta: newMeta, updated_at: new Date().toISOString() })
+                    .eq('id', p.id);
+
+                if (updateError) {
+                    console.error(`❌ Failed to draft ${p.slug}:`, updateError.message);
+                } else {
+                    const item = affected.find(a => a.slug === p.slug);
+                    if (item) item.updated = true;
+                }
+            }
+        }
+    }
+
+    return { affected: affected.length, results: affected };
+}
+
 /**
  * Script: publish-all-drafts
  * Finds all products where meta->'published' is false and sets it to true.
@@ -426,11 +504,7 @@ async function runBulkAssignUnassignedSeller(
 async function runPublishAllDrafts(
     dryRun: boolean
 ): Promise<{ affected: number; results: PublishDraftResult[] }> {
-    const { data, error } = await supabaseAdmin.from('products').select('id, slug, title, meta');
-    
-    if (error) throw new Error(`Failed to fetch products: ${error.message}`);
-    
-    const products = data || [];
+    const products = await fetchAllProductsForStatus();
     const affected: PublishDraftResult[] = [];
     
     for (const p of products) {
@@ -695,6 +769,20 @@ export async function POST(request: NextRequest) {
                     message: dryRun
                         ? `Preview: ${result.affected} unassigned product(s) would be assigned to seller "${sellerRow.name}" (${resolvedSellerId})`
                         : `Done: ${result.results.filter(r => r.updated).length} unassigned product(s) assigned to seller "${sellerRow.name}"`,
+                });
+            }
+
+            case 'draft-all-products': {
+                const result = await runDraftAllProducts(dryRun);
+
+                return NextResponse.json({
+                    scriptId,
+                    dryRun,
+                    affected: result.affected,
+                    results: result.results,
+                    message: dryRun
+                        ? `Preview: ${result.affected} published product(s) would be moved to draft`
+                        : `Done: ${result.results.filter(r => r.updated).length} product(s) moved to draft`,
                 });
             }
 

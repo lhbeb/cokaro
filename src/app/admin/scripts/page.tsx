@@ -192,6 +192,16 @@ const SCRIPTS: ScriptCard[] = [
         },
     },
     {
+        id: 'draft-all-products',
+        name: 'Draft All Products',
+        description:
+            'Finds all products currently marked as Published and sets them to Draft. ' +
+            'Use Preview first to see how many published products will be affected before running.',
+        danger: true,
+        params: {},
+        paramLabels: {},
+    },
+    {
         id: 'publish-all-drafts',
         name: 'Publish All Drafts',
         description:
@@ -490,10 +500,10 @@ function ScriptCardComponent({ script }: { script: ScriptCard }) {
                                             ) : 'oldStatus' in row ? (
                                                 <>
                                                     <td className="px-4 py-3">
-                                                        <span className="inline-block px-2 py-0.5 bg-amber-50 text-amber-700 rounded text-xs font-medium">{row.oldStatus}</span>
+                                                        <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${row.oldStatus === 'Draft' ? 'bg-amber-50 text-amber-700' : 'bg-green-50 text-green-700'}`}>{row.oldStatus}</span>
                                                     </td>
                                                     <td className="px-4 py-3">
-                                                        <span className="inline-block px-2 py-0.5 bg-green-50 text-green-700 rounded text-xs font-medium">{row.newStatus}</span>
+                                                        <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${row.newStatus === 'Published' ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'}`}>{row.newStatus}</span>
                                                     </td>
                                                 </>
                                             ) : (
