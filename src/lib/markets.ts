@@ -35,9 +35,9 @@ export const MARKETS: Record<MarketKey, MarketConfig> = {
     freeShippingText: 'Free standard shipping',
     returnsText: '30-day returns',
     faqShippingAnswer:
-      'Orders placed before 2:00 PM PST often ship the same day. Handling time is 0-1 calendar days, and transit time is 5-8 calendar days, making the total estimated delivery time 5-9 calendar days.',
+      'Orders placed before 2:00 PM EST often ship the same day. Handling time is 0-1 business days, and transit time is 5-8 business days, making the total estimated delivery time 5-9 business days.',
     faqFreeShippingAnswer:
-      'Yes, standard shipping is currently free across the United States and Canada. If faster delivery is available, you\'ll see those options at checkout.',
+      'Yes, standard shipping is free across the United States. If faster delivery is available, you\'ll see those options at checkout.',
   },
   uk: {
     label: 'United Kingdom',
@@ -52,7 +52,7 @@ export const MARKETS: Record<MarketKey, MarketConfig> = {
     freeShippingText: 'Free delivery to United Kingdom',
     returnsText: '30-day returns',
     faqShippingAnswer:
-      'Orders placed before 2:00 PM PST are processed the same calendar day at our US facility. Handling time is 0-1 calendar days, and transit time is 5-8 calendar days, making the total estimated delivery time to the UK 5-9 calendar days.',
+      'Orders placed before 2:00 PM EST are processed the same business day at our US facility. Handling time is 0-1 business days, and transit time is 5-8 business days, making the total estimated delivery time to the UK 5-9 business days.',
     faqFreeShippingAnswer:
       'Yes, standard delivery is free across the United Kingdom. If express delivery is available for a product, you\'ll see those options at checkout.',
   },

@@ -38,7 +38,7 @@ export default function AboutPage() {
         'url': 'https://cokaro.com/about',
         'name': 'About Cokaro',
         'description':
-          'Cokaro is an ecommerce retailer serving customers in the United Kingdom and United States with outdoor power equipment and garden essentials.',
+          'Cokaro is an ecommerce retailer serving customers across the United States with outdoor power equipment and garden essentials.',
         'mainEntity': {
           '@id': 'https://cokaro.com/#organization',
         },
@@ -49,7 +49,7 @@ export default function AboutPage() {
         'name': 'Cokaro',
         'url': 'https://cokaro.com',
         'description':
-          'Ecommerce store serving the United Kingdom and United States with lawn mowers, power tools, portable generators, and garden essentials.',
+          'Ecommerce store serving the United States with lawn mowers, power tools, portable generators, and garden essentials.',
         'email': 'contact@cokaro.com',
         'telephone': ['+19129231747'],
         'address': {
@@ -57,6 +57,7 @@ export default function AboutPage() {
             'streetAddress': '305 Greif Pkwy',
             'addressLocality': 'Delaware',
             'addressRegion': 'OH',
+            'postalCode': '43015',
             'addressCountry': 'US',
         },
         'contactPoint': [
@@ -64,7 +65,7 @@ export default function AboutPage() {
             '@type': 'ContactPoint',
             'telephone': '+19129231747',
             'contactType': 'customer service',
-            'areaServed': ['GB', 'US'],
+            'areaServed': 'US',
             'availableLanguage': ['en'],
           },
         ],
@@ -304,7 +305,7 @@ export default function AboutPage() {
                 <Headphones className="h-6 w-6 text-[#0a3075]" />
                 <h3 className="text-xl font-bold text-[#262626]">Customer Focus</h3>
               </div>
-              <p className="text-gray-700">We offer fast and free shipping within the United States and United Kingdom, a 30 day return policy, and reliable human support.</p>
+              <p className="text-gray-700">We offer fast and free shipping within the United States, a 30 day return policy, and reliable human support.</p>
             </div>
 
             <div className="bg-[#F0F6FF] rounded-xl p-6 border border-[#0a3075]/10 md:col-span-2">
@@ -371,8 +372,8 @@ export default function AboutPage() {
               <div className="text-[#F0F6FF]/80 text-sm">satisfaction rate</div>
             </div>
             <div className="text-center p-6 bg-[#F0F6FF]/10 backdrop-blur-sm rounded-xl border border-[#F0F6FF]/20">
-              <div className="text-4xl font-bold mb-2">24/7</div>
-              <div className="text-[#F0F6FF]/80 text-sm">support available</div>
+              <div className="text-4xl font-bold mb-2">Dedicated</div>
+              <div className="text-[#F0F6FF]/80 text-sm">customer support</div>
             </div>
           </div>
         </div>

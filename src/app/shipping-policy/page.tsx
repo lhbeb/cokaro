@@ -20,7 +20,7 @@ const policySections = [
     items: [
       'Free standard shipping on all orders across the United States',
       'No minimum purchase requirement',
-      'Tracked shipping via premium logistics partners (USPS, FedEx, Royal Mail, DHL)',
+      'Tracked shipping via premium logistics partners (USPS, FedEx, UPS, DHL)',
     ],
   },
   {
@@ -45,7 +45,7 @@ const policySections = [
     title: 'Package Protection & Safety',
     items: [
       '100% full shipping insurance on all packages',
-      'Signature confirmation for high-value orders over $500 / £400',
+      'Signature confirmation for high-value orders over $500',
       'Weather-resistant outer mailers',
       'Protective bubble/foam layering for fragile items',
     ],
