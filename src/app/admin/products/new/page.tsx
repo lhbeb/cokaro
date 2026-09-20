@@ -680,6 +680,8 @@ export default function NewProductPage() {
                   <option value="buymeacoffee">BuyMeACoffee (External - Redirects to payment link)</option>
                   <option value="kofi">Ko-fi (Iframe - Embedded on your site)</option>
                   <option value="stripe">Stripe (Stripe Checkout - Professional payment processing)</option>
+                  <option value="stripe-hosted">Stripe Hosted Checkout (Redirect to checkout.stripe.com)</option>
+                  <option value="shopify">Shopify Checkout (Redirect to Shopify store checkout)</option>
                   <option value="external">External (Custom payment provider)</option>
                   <option value="paypal-invoice">PayPal Invoice (On-site confirmation — invoice sent by email)</option>
                   <option value="paypal-unclaimed">PayPal Unclaimed (Same as invoice flow for now)</option>
