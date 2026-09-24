@@ -149,33 +149,37 @@ export function mapConditionToSchema(conditionValue: string | undefined): string
 /**
  * Formats a valid SKU / Product ID for Google Merchant Center & Search Console.
  * Google Merchant Center strictly caps the `id` attribute at 50 characters maximum.
+ * All IDs are prefixed with "COKARO-" for consistent GMC branding.
  */
 export function formatValidSku(product: { sku?: string; slug?: string; id?: string | number }, fallbackSlug?: string): string {
-  // Explicit SKU if provided and <= 50 characters
-  if (product.sku && String(product.sku).trim().length >= 3 && String(product.sku).trim().length <= 50) {
-    return String(product.sku).trim().toUpperCase().replace(/[^a-zA-Z0-9_-]/g, '-');
-  }
+  const PREFIX = 'COKARO-';
+  const MAX = 50;
 
-  // Short ID if available (e.g. 101, PROD-12)
-  if (product.id && String(product.id).trim().length >= 1 && String(product.id).trim().length <= 40) {
-    const cleanId = String(product.id).trim().replace(/[^a-zA-Z0-9_-]/g, '-').toUpperCase();
-    if (cleanId.length >= 3 && cleanId.length <= 50) {
-      return cleanId;
+  // Explicit SKU if provided — prefix it if not already branded
+  if (product.sku && String(product.sku).trim().length >= 3) {
+    const cleanSku = String(product.sku).trim().toUpperCase().replace(/[^a-zA-Z0-9_-]/g, '-');
+    if (cleanSku.startsWith(PREFIX)) {
+      return cleanSku.slice(0, MAX);
     }
+    const prefixed = `${PREFIX}${cleanSku}`;
+    return prefixed.slice(0, MAX);
   }
 
-  // Fallback to slug, truncated to max 45 characters so it strictly fits Google's 50 char limit
+  // Fallback to slug, truncated so total stays within 50 chars
   const candidate = String(product.slug || fallbackSlug || product.id || '').trim();
   let cleaned = candidate.replace(/[^a-zA-Z0-9_-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').toUpperCase();
-  if (cleaned.length > 45) {
-    cleaned = cleaned.slice(0, 45).replace(/-+$/g, '');
+
+  // Max slug length = 50 - length of PREFIX
+  const maxSlug = MAX - PREFIX.length;
+  if (cleaned.length > maxSlug) {
+    cleaned = cleaned.slice(0, maxSlug).replace(/-+$/g, '');
   }
 
   if (cleaned.length >= 3) {
-    return cleaned;
+    return `${PREFIX}${cleaned}`;
   }
 
-  return `CAS-${cleaned || 'ITEM'}-${String(product.id || '101')}`.slice(0, 50);
+  return `${PREFIX}${String(product.id || 'ITEM')}`.slice(0, MAX);
 }
 
 
