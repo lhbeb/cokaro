@@ -31,6 +31,7 @@ export default function StripeEmbeddedCheckout({
   const [stripePromise, setStripePromise] = useState<Promise<Stripe | null> | null>(null);
   const [configError, setConfigError] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [loadAttempt, setLoadAttempt] = useState(0);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const addressLines = formatShippingAddressLines(shippingData);
 
@@ -51,16 +52,22 @@ export default function StripeEmbeddedCheckout({
   }, []);
 
   useEffect(() => {
+    setConfigError('');
+    setIsLoading(true);
+    setStripePromise(null);
+
     const loadStripeConfig = async () => {
       try {
-        const response = await fetch(`/api/config/stripe?t=${Date.now()}`);
+        const response = await fetch(`/api/config/stripe?t=${Date.now()}`, { cache: 'no-store' });
         const data = await response.json();
 
         if (!response.ok || !data.publishableKey) {
           throw new Error(data.error || 'Stripe is not configured');
         }
 
-        setStripePromise(loadStripe(data.publishableKey));
+        const stripe = await loadStripe(data.publishableKey);
+        if (!stripe) throw new Error('Stripe.js returned no client instance');
+        setStripePromise(Promise.resolve(stripe));
       } catch (error) {
         console.error('Failed to load Stripe config:', error);
         setConfigError('Payment is temporarily unavailable. Please email contact@cokaro.com.');
@@ -69,7 +76,7 @@ export default function StripeEmbeddedCheckout({
     };
 
     loadStripeConfig();
-  }, []);
+  }, [loadAttempt]);
 
   useEffect(() => {
     if (!stripePromise) return;
@@ -204,14 +211,21 @@ export default function StripeEmbeddedCheckout({
             <div ref={frameContainerRef} className="relative min-h-[420px] w-full">
               {isLoading && (
                 <div className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center rounded-xl bg-white">
-                  <div className="mb-3 h-10 w-10 animate-spin rounded-full border-4 border-gray-200 border-t-[#090A28]" />
+                  <div className="mb-3 h-10 w-10 animate-spin rounded-full border-4 border-gray-200 border-t-[#0b2a17]" />
                   <span className="text-sm font-medium text-gray-600">Loading payment options...</span>
                 </div>
               )}
 
               {configError ? (
                 <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700">
-                  {configError}
+                  <p>{configError}</p>
+                  <button
+                    type="button"
+                    onClick={() => setLoadAttempt((attempt) => attempt + 1)}
+                    className="mt-3 rounded-lg bg-[#0b2a17] px-4 py-2 text-white hover:bg-[#3a7f4b]"
+                  >
+                    Retry card payment
+                  </button>
                 </div>
               ) : stripePromise ? (
                 <EmbeddedCheckoutProvider stripe={stripePromise} options={{ clientSecret }}>
@@ -241,7 +255,7 @@ export default function StripeEmbeddedCheckout({
                   <button
                     type="button"
                     onClick={onBack}
-                    className="text-xs font-semibold text-[#090A28] hover:underline"
+                    className="text-xs font-semibold text-[#0b2a17] hover:underline"
                   >
                     Edit
                   </button>
@@ -254,7 +268,7 @@ export default function StripeEmbeddedCheckout({
 
             <div className="flex items-center justify-between px-1 text-xs text-gray-600">
               <span>Shipping</span>
-              <span className="font-semibold text-[#090A28]">Free</span>
+              <span className="font-semibold text-[#0b2a17]">Free</span>
             </div>
           </div>
         </div>
