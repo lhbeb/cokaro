@@ -44,7 +44,7 @@ export default function ShippingPolicyPage() {
             'maxValue': 4,
             'unitCode': 'DAY',
           },
-          'cutoffTime': '14:00:00-05:00',
+          'cutoffTime': '14:00:00-06:00',
         },
       },
     ],
