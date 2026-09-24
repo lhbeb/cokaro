@@ -5,132 +5,217 @@ import Link from 'next/link';
 import { CheckCircle, Mail, Clock, Package, ArrowLeft, Loader2 } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { trackPixelEvent } from '@/lib/pixel';
-import { clearPendingOrder, getPendingOrder } from '@/lib/pendingOrder';
 import { CART_STORAGE_KEY, clearCart } from '@/utils/cart';
+import { queueGoogleAdsPurchase } from '@/lib/googleAds';
+import { clearPendingOrder, getPendingOrder } from '@/lib/pendingOrder';
 
-// Window within which a pending order is treated as a real BMC conversion.
-// BMC has no webhook/payment confirmation, so this guards against firing a
-// Purchase for a stale/abandoned attempt.
-const PENDING_ORDER_WINDOW_MS = 30 * 60 * 1000; // 30 minutes
+const PURCHASE_TRACKED_KEY_PREFIX = 'purchase_tracked:';
+const PAYMENT_VERIFY_DELAYS_MS = [0, 750, 1500, 3000, 5000];
+
+interface PurchaseTrackingData {
+  value: number;
+  currency: string;
+  transactionId: string;
+  email?: string | null;
+  contentId?: string;
+  contentName?: string;
+}
+
+function trackPurchaseOnce(data: PurchaseTrackingData): boolean {
+  if (!data.transactionId || !Number.isFinite(data.value) || data.value <= 0) return false;
+
+  const trackingKey = `${PURCHASE_TRACKED_KEY_PREFIX}${data.transactionId}`;
+  try {
+    if (sessionStorage.getItem(trackingKey)) return true;
+  } catch {
+    // Tracking should continue if browser storage is blocked.
+  }
+
+  try {
+    trackPixelEvent(
+      'Purchase',
+      {
+        value: data.value,
+        currency: data.currency,
+        content_ids: data.contentId ? [data.contentId] : [],
+        content_name: data.contentName || '',
+        content_type: 'product',
+        num_items: 1,
+        event_id: data.transactionId,
+      },
+    );
+  } catch (error) {
+    console.warn('Meta purchase tracking failed:', error);
+  }
+
+  queueGoogleAdsPurchase({
+    value: data.value,
+    currency: data.currency,
+    transactionId: data.transactionId,
+    email: data.email,
+    contentId: data.contentId,
+    contentName: data.contentName,
+  });
+
+  try {
+    sessionStorage.setItem(trackingKey, '1');
+  } catch {
+    // Ad platforms also deduplicate by event id / transaction id.
+  }
+
+  return true;
+}
 
 function ThankYouContent() {
   const searchParams = useSearchParams();
   const [orderDetails, setOrderDetails] = useState<any>(null);
   const sessionId = searchParams.get('session_id');
-  const isStaticSuccess = !sessionId;
+  const paymentIntentId = searchParams.get('payment_intent');
+  const isStripeElementsReturn = searchParams.get('payment_method') === 'stripe' || Boolean(paymentIntentId);
+  const isStaticSuccess = !sessionId && !isStripeElementsReturn;
   const isSuccessful = isStaticSuccess || orderDetails?.status === 'paid';
 
   useEffect(() => {
-    // Stripe flow: fire Purchase only from the server-verified session, using the
-    // order id as the Meta eventID for dedup. No cart-based event is fired here,
-    // so a Stripe order can never double-fire a Purchase.
-    if (sessionId) {
-      const verifyInBackground = async () => {
+    if (isStripeElementsReturn) {
+      let cancelled = false;
+
+      const verifyPaymentIntentInBackground = async () => {
+        if (!paymentIntentId) {
+          setOrderDetails({
+            status: 'pending',
+            message: 'Stripe did not return a payment reference. Please contact support if you completed payment.',
+          });
+          return;
+        }
+
+        let lastResult: any = { status: 'pending' };
+
+        for (const delay of PAYMENT_VERIFY_DELAYS_MS) {
+          if (delay) await new Promise((resolve) => setTimeout(resolve, delay));
+          if (cancelled) return;
+
+          try {
+            const response = await fetch('/api/verify-payment', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ paymentIntentId }),
+              cache: 'no-store',
+            });
+
+            if (response.ok) {
+              lastResult = await response.json();
+              if (lastResult.status === 'paid') {
+                if (cancelled) return;
+                setOrderDetails(lastResult);
+                trackPurchaseOnce({
+                  value: lastResult.amount ? lastResult.amount / 100 : 0,
+                  currency: lastResult.currency ? lastResult.currency.toUpperCase() : 'USD',
+                  transactionId: lastResult.orderId || paymentIntentId,
+                  email: lastResult.email || lastResult.customerEmail,
+                  contentId: lastResult.productSlug || lastResult.orderId,
+                  contentName: lastResult.productTitle,
+                });
+                clearPendingOrder();
+                clearCart();
+                return;
+              }
+            } else if (response.status >= 400 && response.status < 500) {
+              lastResult = await response.json().catch(() => lastResult);
+              break;
+            }
+          } catch (error) {
+            console.warn('PaymentIntent verification attempt failed:', error);
+          }
+        }
+
+        if (!cancelled) {
+          setOrderDetails(lastResult);
+        }
+      };
+
+      verifyPaymentIntentInBackground();
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    // PayPal and other redirect flows only reach this route after provider success.
+    if (!sessionId) {
+      try {
+        const pendingOrder = getPendingOrder();
+        const stored = localStorage.getItem(CART_STORAGE_KEY);
+        const cartItem = stored ? JSON.parse(stored) : null;
+        const product = pendingOrder?.product || cartItem?.product;
+        if (product) {
+          const transactionId = pendingOrder?.orderId || `redirect-${product.slug || product.id || Date.now()}`;
+          trackPurchaseOnce({
+            value: product.price || 0,
+            currency: product.currency || 'USD',
+            transactionId,
+            contentId: product.slug || product.id || '',
+            contentName: product.title || '',
+          });
+        }
+      } catch (e) {
+        console.error('Purchase pixel error:', e);
+      }
+      clearPendingOrder();
+      clearCart();
+      return;
+    }
+
+    let cancelled = false;
+
+    const verifyInBackground = async () => {
+      let lastResult: any = { status: 'pending' };
+
+      for (const delay of PAYMENT_VERIFY_DELAYS_MS) {
+        if (delay) await new Promise((resolve) => setTimeout(resolve, delay));
+        if (cancelled) return;
+
         try {
           const response = await fetch('/api/verify-payment', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ sessionId }),
+            cache: 'no-store',
           });
 
           if (response.ok) {
-            const data = await response.json();
-            setOrderDetails(data);
-
-            if (data.status === 'paid') {
-              const orderId = data.orderId as string | undefined;
-              const guardKey = orderId
-                ? `purchase_tracked_${orderId}`
-                : 'purchase_tracked_stripe';
-
-              if (!sessionStorage.getItem(guardKey)) {
-                trackPixelEvent(
-                  'Purchase',
-                  {
-                    value: data.amount ? data.amount / 100 : 0,
-                    currency: data.currency ? data.currency.toUpperCase() : 'USD',
-                    content_ids: data.productSlug ? [data.productSlug] : [],
-                    content_name: data.productTitle || '',
-                    content_type: 'product',
-                    num_items: 1,
-                  },
-                  { eventID: orderId || undefined }
-                );
-                sessionStorage.setItem(guardKey, '1');
-              }
+            lastResult = await response.json();
+            if (lastResult.status === 'paid') {
+              if (cancelled) return;
+              setOrderDetails(lastResult);
+              trackPurchaseOnce({
+                value: lastResult.amount ? lastResult.amount / 100 : 0,
+                currency: lastResult.currency ? lastResult.currency.toUpperCase() : 'USD',
+                transactionId: lastResult.orderId || sessionId,
+                email: lastResult.email || lastResult.customerEmail,
+                contentId: lastResult.productSlug || lastResult.orderId,
+                contentName: lastResult.productTitle,
+              });
+              clearCart();
+              return;
             }
-          } else {
-            console.warn('⚠️ Payment verification failed, falling back to pending UI');
-            setOrderDetails({ status: 'pending' });
+          } else if (response.status >= 400 && response.status < 500) {
+            break;
           }
         } catch (error) {
-          console.error('❌ Background verification error:', error);
-          setOrderDetails({ status: 'pending' });
+          console.warn('Payment verification attempt failed:', error);
         }
-      };
-
-      verifyInBackground();
-      return;
-    }
-
-    // Non-Stripe flows (Buy Me A Coffee / external): the user only reaches this
-    // page after a completed payment. Fire Purchase from the pending order saved
-    // at checkout, with eventID = orderId so Meta can dedupe it against a
-    // server-side Conversions API event on confirmation.
-    //
-    // False-positive safeguard: BMC has no webhook, so the pending order is only
-    // treated as a real conversion within a short window. A stale pending order
-    // (e.g. from an abandoned attempt) is suppressed instead of firing.
-    const pending = getPendingOrder();
-    const isPendingFresh =
-      !!pending && Date.now() - new Date(pending.createdAt).getTime() <= PENDING_ORDER_WINDOW_MS;
-
-    let orderId = isPendingFresh ? pending!.orderId : null;
-    let product: any = isPendingFresh ? pending!.product : null;
-
-    // Cart fallback only when there was no pending order at all (legacy path),
-    // with validation so invalid/missing data can't produce a Purchase.
-    if (!pending) {
-      try {
-        const stored = localStorage.getItem(CART_STORAGE_KEY);
-        if (stored) {
-          const cartProduct = JSON.parse(stored)?.product;
-          if (cartProduct && cartProduct.slug && cartProduct.price !== undefined) {
-            product = cartProduct;
-          }
-        }
-      } catch (e) {
-        console.error('Purchase pixel error:', e);
       }
-    }
 
-    if (product) {
-      const guardKey = orderId
-        ? `purchase_tracked_${orderId}`
-        : 'purchase_tracked_cart';
-
-      if (!sessionStorage.getItem(guardKey)) {
-        trackPixelEvent(
-          'Purchase',
-          {
-            value: product.price || 0,
-            currency: product.currency || 'USD',
-            content_ids: [product.slug || product.id || ''],
-            content_name: product.title || '',
-            content_type: 'product',
-            num_items: 1,
-          },
-          { eventID: orderId || undefined }
-        );
-        sessionStorage.setItem(guardKey, '1');
+      if (!cancelled) {
+        setOrderDetails(lastResult);
       }
-    }
+    };
 
-    clearCart();
-    clearPendingOrder();
-  }, [searchParams, sessionId]);
+    verifyInBackground();
+    return () => {
+      cancelled = true;
+    };
+  }, [isStripeElementsReturn, paymentIntentId, searchParams, sessionId]);
 
-  // Always show success (Stripe only redirects here if payment succeeded)
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 flex items-center justify-center p-4">
       <div className="max-w-2xl w-full">
@@ -148,7 +233,7 @@ function ThankYouContent() {
 
           <p className="text-lg text-gray-600 mb-8 leading-relaxed">
             {isSuccessful
-              ? 'Your payment has been successfully recorded and your order is queued for manual processing. We will send you an email confirmation shortly once verified.' 
+              ? 'Your payment has been successfully recorded and your order is queued for manual processing. We will send you an email confirmation shortly once verified.'
               : 'Your payment is still processing or awaiting backend verification. We will process your order and send a confirmation email once it is completely confirmed.'}
           </p>
 
@@ -219,7 +304,7 @@ function ThankYouContent() {
                 </a>
               </p>
               <p className="text-gray-700">
-                📞 <a href="tel:+1 (913) 593-7677" className="text-blue-600 hover:text-blue-700 font-medium">
+                📞 <a href="tel:+19135937677" className="text-blue-600 hover:text-blue-700 font-medium">
                   +1 (913) 593-7677
                 </a>
               </p>
@@ -242,7 +327,7 @@ function ThankYouContent() {
         <div className="text-center mt-8">
           <p className="text-sm text-gray-500">
             {isSuccessful
-              ? 'You will receive a confirmation email once our team reviews your order' 
+              ? 'You will receive a confirmation email once our team reviews your order'
               : 'We will notify you by email once your payment clears'}
           </p>
         </div>

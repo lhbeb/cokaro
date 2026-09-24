@@ -7,13 +7,16 @@ import { getStripeConfig } from '@/lib/supabase/payment-settings';
 
 export async function POST(request: NextRequest) {
     try {
-        // Initialize Stripe inside handler to defer until runtime (avoids Vercel build crash)
         const stripeConfig = await getStripeConfig();
         const stripe = new Stripe(stripeConfig.secretKey || 'sk_test_placeholder', {
             apiVersion: '2026-01-28.clover' as any,
         });
 
-        const { sessionId } = await request.json();
+        const { sessionId, paymentIntentId: requestedPaymentIntentId } = await request.json();
+
+        if (requestedPaymentIntentId) {
+            return await verifyPaymentIntent(stripe, requestedPaymentIntentId);
+        }
 
         if (!sessionId) {
             return NextResponse.json(
@@ -39,65 +42,85 @@ export async function POST(request: NextRequest) {
                 message: 'Payment not completed or still processing'
             });
         }
-        
+
         const orderId = session.metadata?.order_id;
         if (!orderId) {
-             return NextResponse.json(
+            return NextResponse.json(
                 { error: 'Session missing order metadata' },
                 { status: 400 }
             );
         }
-        
-        const order = await getOrderById(orderId);
 
+        let order = await getOrderById(orderId);
         if (!order) {
-            return NextResponse.json({ error: 'Order record was not found.' }, { status: 404 });
+            return NextResponse.json(
+                { error: 'Order not found' },
+                { status: 404 }
+            );
         }
 
-        const expectedAmount = Math.round(Number(order.product_price) * 100);
-        if (!Number.isFinite(expectedAmount) || session.amount_total !== expectedAmount) {
-            console.error('[Payment Verification] Stripe amount does not match the order:', {
+        if (
+            !['stripe', 'stripe-hosted'].includes(order.checkout_flow) ||
+            !order.stripe_checkout_session_id ||
+            order.stripe_checkout_session_id !== session.id
+        ) {
+            console.error('[Payment Verification] Session/order binding mismatch:', {
                 orderId,
-                expectedAmount,
-                stripeAmount: session.amount_total,
+                sessionId: session.id,
+                checkoutFlow: order.checkout_flow,
             });
-            return NextResponse.json({ error: 'Payment amount could not be verified.' }, { status: 409 });
+            return NextResponse.json(
+                { error: 'Payment session does not match this order' },
+                { status: 400 }
+            );
         }
+
+        const paymentIntentId = typeof session.payment_intent === 'string'
+            ? session.payment_intent
+            : session.payment_intent?.id;
 
         if (order.status !== 'paid') {
-            const paymentIntentId = typeof session.payment_intent === 'string'
-                ? session.payment_intent
-                : session.payment_intent?.id;
+            console.log(`[Payment Verification] Updating order ${orderId} to PAID directly...`);
             const updated = await updateOrderStripeStatus(orderId, {
                 status: 'paid',
                 stripe_payment_intent_id: paymentIntentId,
                 stripe_payment_status: session.payment_status,
-                paid_at: new Date().toISOString(),
+                paid_at: new Date().toISOString()
             });
 
-            if (!updated) {
-                return NextResponse.json({
-                    status: 'pending',
-                    message: 'Payment is confirmed but the order record is still syncing.',
+            if (!updated) throw new Error('Failed to update paid order');
+            order = (await getOrderById(orderId)) || order;
+        }
+
+        if (!parseStripeEmailSent(order.full_order_data)) {
+            try {
+                console.log(`[Payment Verification] Sending payment notification emails for order ${orderId}...`);
+                const { sendStripePaymentSuccessEmail } = await import('@/lib/email/sender');
+                await sendStripePaymentSuccessEmail(order, {
+                    paymentIntentId,
+                    amount: session.amount_total ?? undefined,
+                    currency: session.currency ?? undefined,
                 });
+            } catch (emailErr) {
+                console.error(`[Payment Verification] Failed to send email for order ${orderId}:`, emailErr);
             }
         }
 
-        // Return payment status and details securely
         return NextResponse.json({
-            status: 'paid', // Explicit trust signal for frontend
+            status: 'paid',
             orderId: order.id,
+            productSlug: order.product_slug,
+            productTitle: order.product_title || null,
             sessionId: session.id,
             amount: session.amount_total,
             currency: session.currency,
-            productSlug: order.product_slug || null,
-            productTitle: order.product_title || null,
+            customerEmail: session.customer_details?.email || session.customer_email || session.metadata?.customer_email || null,
+        }, {
+            headers: { 'Cache-Control': 'no-store, max-age=0' },
         });
 
     } catch (error: any) {
         console.error('❌ [Payment Verification] Error:', error);
-
-        // Don't expose Stripe errors to client
         return NextResponse.json(
             {
                 error: 'Unable to verify payment. Please contact support if you completed a payment.',
@@ -106,4 +129,95 @@ export async function POST(request: NextRequest) {
             { status: 500 }
         );
     }
+}
+
+async function verifyPaymentIntent(stripe: Stripe, paymentIntentId: string) {
+    const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+
+    console.log('✅ [Payment Verification] PaymentIntent retrieved:', {
+        id: paymentIntent.id,
+        status: paymentIntent.status,
+        amount: paymentIntent.amount_received || paymentIntent.amount,
+    });
+
+    if (paymentIntent.status !== 'succeeded') {
+        return NextResponse.json({
+            status: 'pending',
+            message: 'Payment not completed or still processing',
+        }, {
+            headers: { 'Cache-Control': 'no-store, max-age=0' },
+        });
+    }
+
+    const orderId = paymentIntent.metadata?.order_id;
+    if (!orderId) {
+        return NextResponse.json(
+            { error: 'Payment missing order metadata' },
+            { status: 400 }
+        );
+    }
+
+    let order = await getOrderById(orderId);
+    if (!order) {
+        return NextResponse.json(
+            { error: 'Order not found' },
+            { status: 404 }
+        );
+    }
+
+    if (order.status !== 'paid') {
+        console.log(`[Payment Verification] Updating order ${orderId} to PAID from PaymentIntent...`);
+        const updated = await updateOrderStripeStatus(orderId, {
+            status: 'paid',
+            stripe_payment_intent_id: paymentIntent.id,
+            stripe_payment_status: paymentIntent.status,
+            paid_at: new Date().toISOString()
+        });
+
+        if (!updated) throw new Error('Failed to update paid order');
+        order = (await getOrderById(orderId)) || order;
+    }
+
+    if (!parseStripeEmailSent(order.full_order_data)) {
+        try {
+            console.log(`[Payment Verification] Sending payment notification emails for order ${orderId}...`);
+            const { sendStripePaymentSuccessEmail } = await import('@/lib/email/sender');
+            await sendStripePaymentSuccessEmail(order, {
+                paymentIntentId: paymentIntent.id,
+                amount: paymentIntent.amount_received || paymentIntent.amount,
+                currency: paymentIntent.currency,
+            });
+        } catch (emailErr) {
+            console.error(`[Payment Verification] Failed to send email for order ${orderId}:`, emailErr);
+        }
+    }
+
+    return NextResponse.json({
+        status: 'paid',
+        orderId: order.id,
+        productSlug: order.product_slug,
+        productTitle: order.product_title || null,
+        paymentIntentId: paymentIntent.id,
+        amount: paymentIntent.amount_received || paymentIntent.amount,
+        currency: paymentIntent.currency,
+        customerEmail: paymentIntent.receipt_email || paymentIntent.metadata?.customer_email || order.customer_email || null,
+    }, {
+        headers: { 'Cache-Control': 'no-store, max-age=0' },
+    });
+}
+
+function parseStripeEmailSent(rawData: unknown): boolean {
+    if (!rawData) return false;
+    if (typeof rawData === 'object') {
+        return Boolean((rawData as Record<string, unknown>).stripe_email_sent);
+    }
+    if (typeof rawData === 'string') {
+        try {
+            const parsed = JSON.parse(rawData);
+            return Boolean(parsed?.stripe_email_sent);
+        } catch {
+            return false;
+        }
+    }
+    return false;
 }

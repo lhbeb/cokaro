@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -39,6 +39,7 @@ const CheckoutPage: React.FC = () => {
   const [paypalDirectOrderId, setPaypalDirectOrderId] = useState<string | null>(null);
   const [checkoutError, setCheckoutError] = useState('');
   const [isSendingEmail, setIsSendingEmail] = useState(false);
+  const submittingRef = useRef(false);
   const [sellerName, setSellerName] = useState<string | null>(null);
   const [paypalDirectEmail, setPaypalDirectEmail] = useState('');
 
@@ -50,7 +51,10 @@ const CheckoutPage: React.FC = () => {
     try {
       const searchParams = new URLSearchParams(window.location.search);
       if (searchParams.get('payment') === 'cancelled') {
-        setCheckoutError('Your PayPal payment was not completed. Your item is still here, so you can try again.');
+        const provider = searchParams.get('provider');
+        setCheckoutError(provider === 'stripe-hosted'
+          ? 'Your Stripe payment was not completed. Your item is still here, so you can try again.'
+          : 'Your PayPal payment was not completed. Your item is still here, so you can try again.');
         window.history.replaceState({}, '', window.location.pathname);
       } else if (searchParams.get('payment') === 'failed') {
         setCheckoutError('PayPal could not complete that payment. Please confirm your delivery details and try again.');
@@ -337,6 +341,7 @@ const CheckoutPage: React.FC = () => {
 
   const handleContinueToCheckout = async (event: FormEvent) => {
     event.preventDefault();
+    if (submittingRef.current) return;
     console.log('🚀 [Checkout] Form submitted');
 
     if (!cartItem?.product) {
@@ -405,6 +410,7 @@ const CheckoutPage: React.FC = () => {
     });
     console.log('👤 [Checkout] Shipping data:', { email: form.shippingData.email });
 
+    submittingRef.current = true;
     setIsSendingEmail(true);
     setCheckoutError('');
     setAssignedCheckoutLink(null);
@@ -508,6 +514,7 @@ const CheckoutPage: React.FC = () => {
       }
       alert('An error occurred during checkout. Please try again.');
       setIsSendingEmail(false);
+      submittingRef.current = false;
     }
   };
 
