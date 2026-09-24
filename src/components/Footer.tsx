@@ -132,15 +132,34 @@ const Footer = () => {
         </div>
 
         <div className="border-t border-[#F0F6FF]/20 mt-12 pt-8">
-          <div className="flex flex-col items-center justify-between gap-5 text-center sm:flex-row sm:text-left">
-            <p>© 2026 Cokaro. All rights reserved.</p>
-            <div className="flex items-center justify-center sm:justify-end">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/paymenticons.svg"
-                alt="Accepted payment methods"
-                className="h-8 w-auto max-w-[min(100%,25rem)] object-contain"
-              />
+          <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-between">
+            <p className="text-center sm:text-left">© 2026 Cokaro. All rights reserved.</p>
+            <div className="flex flex-wrap items-center justify-center gap-1.5 sm:justify-end">
+              {[
+                { src: '/payment-logos/visa.svg',             alt: 'Visa' },
+                { src: '/payment-logos/mastercard.svg',       alt: 'Mastercard' },
+                { src: '/payment-logos/american-express.svg', alt: 'American Express' },
+                { src: '/payment-logos/discover.svg',         alt: 'Discover' },
+                { src: '/payment-logos/maestro.svg',          alt: 'Maestro' },
+                { src: '/payment-logos/jcb.svg',              alt: 'JCB' },
+                { src: '/payment-logos/unionpay.svg',         alt: 'UnionPay' },
+                { src: '/payment-logos/diners.svg',           alt: 'Diners Club' },
+                { src: '/payment-logos/apple-pay.svg',        alt: 'Apple Pay' },
+                { src: '/payment-logos/google-pay.svg',       alt: 'Google Pay' },
+              ].map((logo) => (
+                <span
+                  key={logo.src}
+                  className="flex h-9 min-w-[3.5rem] items-center justify-center rounded-md bg-white px-2"
+                >
+                  <Image
+                    src={logo.src}
+                    alt={logo.alt}
+                    width={52}
+                    height={32}
+                    className="max-h-6 w-auto object-contain"
+                  />
+                </span>
+              ))}
             </div>
           </div>
         </div>
