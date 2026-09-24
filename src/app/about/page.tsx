@@ -427,8 +427,7 @@ export default function AboutPage() {
               </div>
               <div className="text-gray-600 ml-8 space-y-1">
                 <div>Monday to Friday, 9:00 AM to 5:00 PM CT</div>
-                <div>Saturday, 10:00 AM to 3:00 PM CT</div>
-                <div>Sunday, Closed</div>
+                <div>Saturday and Sunday, Closed</div>
               </div>
             </div>
           </div>
