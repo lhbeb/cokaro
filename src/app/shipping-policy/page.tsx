@@ -3,7 +3,7 @@ import Link from 'next/link';
 
 export const metadata = {
   title: 'Shipping & Delivery | Cokaro',
-  description: 'Cokaro Shipping & Delivery Policy. Free standard shipping across the United States with 1 business day processing and 1-3 business days in transit.',
+  description: 'Cokaro Shipping & Delivery Policy. Free standard shipping across the United States with 1 business day processing and 3-4 business days in transit.',
 };
 
 export default function ShippingPolicyPage() {
@@ -16,7 +16,7 @@ export default function ShippingPolicyPage() {
         'url': 'https://cokaro.com/shipping-policy',
         'name': 'Shipping & Delivery | Cokaro',
         'description':
-          'Cokaro Shipping & Delivery Policy: Free standard shipping across the United States with 1 business day processing and 1-3 business days in transit.',
+          'Cokaro Shipping & Delivery Policy: Free standard shipping across the United States with 1 business day processing and 3-4 business days in transit.',
       },
       {
         '@type': 'OfferShippingDetails',
@@ -40,8 +40,8 @@ export default function ShippingPolicyPage() {
           },
           'transitTime': {
             '@type': 'QuantitativeValue',
-            'minValue': 1,
-            'maxValue': 3,
+            'minValue': 3,
+            'maxValue': 4,
             'unitCode': 'DAY',
           },
           'cutoffTime': '14:00:00-05:00',
@@ -91,7 +91,7 @@ export default function ShippingPolicyPage() {
             <h2 className="text-2xl font-bold text-[#262626] mb-4">Delivery Details</h2>
             <ul className="list-disc pl-6 space-y-3 text-gray-600 leading-relaxed">
               <li><strong>Handling Time:</strong> 1 business day (Mon–Fri)</li>
-              <li><strong>Transit Time:</strong> 1–3 business days (Mon–Fri)</li>
+              <li><strong>Transit Time:</strong> 3–4 business days (Mon–Fri)</li>
               <li><strong>Order Cut-off Time:</strong> 02:00 PM Central Time</li>
             </ul>
           </section>

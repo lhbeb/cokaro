@@ -138,8 +138,8 @@ const TermsPage = () => {
             </p>
             <ul className="list-disc pl-6 space-y-2">
               <li>Standard order processing time is 1 business day.</li>
-              <li>Domestic USA transit time is 1 to 3 business days after shipment.</li>
-              <li>Total estimated domestic USA delivery time is 2 to 4 business days after order placement.</li>
+              <li>Domestic USA transit time is 3 to 4 business days after shipment.</li>
+              <li>Total estimated domestic USA delivery time is 4 to 5 business days after order placement.</li>
               <li>All orders qualify for free standard shipping with no minimum spend required.</li>
               <li>Tracking information is sent to the customer via email once the order ships.</li>
             </ul>
