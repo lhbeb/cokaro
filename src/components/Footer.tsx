@@ -85,9 +85,11 @@ const Footer = () => {
             <h3 className="text-lg font-semibold text-[#F0F6FF] mb-4">Shop Collections</h3>
             <ul className="space-y-2">
               <li><Link href="/search" className="hover:text-[#f5970c] transition-colors duration-300">All Products</Link></li>
+              <li><Link href="/search?category=Lawn+%26+Garden" className="hover:text-[#f5970c] transition-colors duration-300">Lawn & Garden</Link></li>
               <li><Link href="/search?category=Lawn+Mowers" className="hover:text-[#f5970c] transition-colors duration-300">Lawn Mowers</Link></li>
-              <li><Link href="/search?category=Pressure+Washers" className="hover:text-[#f5970c] transition-colors duration-300">Pressure Washers</Link></li>
-              <li><Link href="/search?category=Outdoor+Power+Equipment" className="hover:text-[#f5970c] transition-colors duration-300">Outdoor Power Equipment</Link></li>
+              <li><Link href="/search?category=Water+Heaters+%26+Boilers" className="hover:text-[#f5970c] transition-colors duration-300">Water Heaters & Boilers</Link></li>
+              <li><Link href="/search?category=Generators" className="hover:text-[#f5970c] transition-colors duration-300">Generators</Link></li>
+              <li><Link href="/search?category=Garage+Equipment" className="hover:text-[#f5970c] transition-colors duration-300">Garage Equipment</Link></li>
             </ul>
           </div>
 
