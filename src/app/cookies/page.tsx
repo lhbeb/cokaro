@@ -1,8 +1,20 @@
 import React from 'react';
 import ResellerBrandNotice from '@/components/ResellerBrandNotice';
+import LegalPageSchema from '@/components/LegalPageSchema';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Cookies Policy | Cokaro',
+  description: 'Cokaro Cookies Policy explaining how we use cookies and tracking technologies on our website.',
+};
 
 const CookiesPage = () => (
   <div className="min-h-screen flex flex-col bg-gray-50 py-12">
+    <LegalPageSchema
+      name="Cookies Policy | Cokaro"
+      description="Cokaro Cookies Policy explaining how we use cookies and tracking technologies on our website."
+      path="/cookies"
+    />
     <div className="container mx-auto px-4 max-w-4xl">
       <h1 className="text-4xl font-bold text-[#262626] mb-8">Cookies Policy</h1>
       

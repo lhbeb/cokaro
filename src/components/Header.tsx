@@ -381,9 +381,9 @@ const Header = () => {
         {/* Navigation Bar */}
         <div suppressHydrationWarning={true} className="hidden lg:block bg-[#f3f4f6] border-t border-[#0a3075]/10">
           <div suppressHydrationWarning={true} className="container mx-auto px-4">
-            <nav className="flex items-center gap-6 bg-[#f3f4f6] py-3 font-heading overflow-x-auto scrollbar-hide">
+            <nav className="flex min-w-max items-center gap-4 bg-[#f3f4f6] py-3 font-heading overflow-x-auto scrollbar-hide">
               {[...productNavLinks, ...utilityNavLinks].map((item) => (
-                <Link key={item.label} href={item.href} className={desktopNavLinkClass}>
+                <Link key={item.label} href={item.href} className={`${desktopNavLinkClass} flex-shrink-0 whitespace-nowrap`}>
                   {item.label}
                 </Link>
               ))}

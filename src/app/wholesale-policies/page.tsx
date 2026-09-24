@@ -1,7 +1,9 @@
 import React from 'react';
 import Link from 'next/link';
+import LegalPageSchema from '@/components/LegalPageSchema';
+import type { Metadata } from 'next';
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'Wholesale Policies | Cokaro',
   description: 'Wholesale policies, eligibility, pricing, and terms for Cokaro resellers.',
 };
@@ -9,6 +11,11 @@ export const metadata = {
 export default function WholesalePoliciesPage() {
   return (
     <main className="min-h-screen bg-[#F5F7FB] py-12 sm:py-16">
+      <LegalPageSchema
+        name="Wholesale Policies | Cokaro"
+        description="Wholesale policies, eligibility, pricing, and terms for Cokaro resellers."
+        path="/wholesale-policies"
+      />
       <div className="container mx-auto max-w-4xl px-4">
         
         {/* Header Section */}

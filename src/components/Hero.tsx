@@ -46,6 +46,7 @@ function findProduct(
       const title = normalize(product.title);
       return titleTerms.some((term) => title.includes(normalize(term)));
     }) ?? categoryProducts[0]
+    ?? findProductByTerms(products, titleTerms, excludedSlugs)
   );
 }
 

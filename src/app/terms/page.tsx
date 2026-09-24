@@ -1,5 +1,12 @@
 import React from 'react';
 import ResellerBrandNotice from '@/components/ResellerBrandNotice';
+import LegalPageSchema from '@/components/LegalPageSchema';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Terms of Service | Cokaro',
+  description: 'Cokaro Terms of Service for outdoor power equipment marketplace and reseller platform.',
+};
 
 const TermsPage = () => {
   const currentDate = new Date().toLocaleDateString('en-US', { 
@@ -10,6 +17,11 @@ const TermsPage = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 py-12">
+      <LegalPageSchema
+        name="Terms of Service | Cokaro"
+        description="Cokaro Terms of Service for outdoor power equipment marketplace and reseller platform."
+        path="/terms"
+      />
       <div className="container mx-auto px-4 max-w-4xl">
         <h1 className="text-4xl font-bold text-[#262626] mb-2">Cokaro Terms of Service</h1>
         <p className="text-gray-600 mb-8">Last Updated: {currentDate}</p>
