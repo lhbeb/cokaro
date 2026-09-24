@@ -32,15 +32,15 @@ const InstagramSection: React.FC = () => {
                   {/* Statistics */}
                   <div className="flex items-center space-x-4 sm:space-x-6 text-sm">
                     <div className="text-center">
-                      <div className="font-bold text-[#262626]">8</div>
+                      <div className="font-bold text-[#262626]">7</div>
                       <div className="text-gray-500 text-xs">posts</div>
                     </div>
                     <div className="text-center">
-                      <div className="font-bold text-[#262626]">1,423</div>
+                      <div className="font-bold text-[#262626]">907</div>
                       <div className="text-gray-500 text-xs">followers</div>
                     </div>
                     <div className="text-center">
-                      <div className="font-bold text-[#262626]">10</div>
+                      <div className="font-bold text-[#262626]">8</div>
                       <div className="text-gray-500 text-xs">following</div>
                     </div>
                   </div>

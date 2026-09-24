@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import LegalPageSchema from '@/components/LegalPageSchema';
 
 export const metadata = {
   title: 'Billing Terms and Conditions | Cokaro',
@@ -9,6 +10,11 @@ export const metadata = {
 export default function BillingTermsPage() {
   return (
     <main className="min-h-screen bg-[#F5F7FB] py-12 sm:py-16">
+      <LegalPageSchema
+        name="Billing Terms and Conditions | Cokaro"
+        description="Billing terms, conditions, and payment security information for Cokaro."
+        path="/billing-term-and-condition"
+      />
       <div className="container mx-auto max-w-4xl px-4">
         
         {/* Header Section */}

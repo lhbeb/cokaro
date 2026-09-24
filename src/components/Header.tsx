@@ -24,9 +24,13 @@ interface NavLink {
 const allProductsLink: NavLink = { label: 'All Products', href: '/search' };
 
 const fallbackCatalogCategories = [
-  'Pressure Washers',
-  'Outdoor Power Equipment',
+  'Lawn & Garden',
   'Lawn Mowers',
+  'Water Heaters & Boilers',
+  'Generators',
+  'Garage Equipment',
+  'Outdoor Power Equipment',
+  'Outdoor Grills',
 ];
 
 const staleCatalogCategoryLabels = new Set([

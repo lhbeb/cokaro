@@ -1,8 +1,14 @@
 import React from 'react';
 import ResellerBrandNotice from '@/components/ResellerBrandNotice';
+import LegalPageSchema from '@/components/LegalPageSchema';
 
 const PrivacyPolicyPage = () => (
   <div className="min-h-screen flex flex-col bg-gray-50 py-12">
+    <LegalPageSchema
+      name="Privacy Policy | Cokaro"
+      description="Cokaro privacy policy explaining how customer information is collected, used, protected, and managed."
+      path="/privacy-policy"
+    />
     <div className="container mx-auto px-4 max-w-4xl">
       <h1 className="text-4xl font-bold text-[#262626] mb-8">Privacy Policy</h1>
       
