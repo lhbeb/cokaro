@@ -21,8 +21,6 @@ interface NavLink {
   href: string;
 }
 
-const allProductsLink: NavLink = { label: 'All Products', href: '/search' };
-
 const fallbackCatalogCategories = [
   'Lawn & Garden',
   'Lawn Mowers',
@@ -69,7 +67,7 @@ const Header = () => {
   const pathname = usePathname();
   const headerRef = useRef<HTMLElement>(null);
   const announcementIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const productNavLinks = [allProductsLink, ...catalogCategoryLinks];
+  const productNavLinks = catalogCategoryLinks;
 
   // Check if we're on the checkout page
   const isCheckoutPage = pathname === '/checkout';
