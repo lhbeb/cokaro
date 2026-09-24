@@ -220,6 +220,97 @@ export async function sendOrderEmailAsync(orderId: string): Promise<void> {
 }
 
 /**
+ * Send a dedicated Stripe payment success notification after Stripe confirms payment.
+ * This is separate from the checkout-intent email and should only fire after payment succeeds.
+ */
+export async function sendStripePaymentSuccessEmail(
+  order: any,
+  payment: {
+    paymentIntentId?: string;
+    amount?: number;
+    currency?: string | null;
+  }
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const transporter = createTransporter();
+    const emailUser = process.env.EMAIL_USER || 'contacthappydeel@gmail.com';
+    const extendedShipping = getExtendedShippingDetails(order);
+    const fullOrderData = parseFullOrderData(order.full_order_data) || {};
+
+    const productUrl = order?.product_slug
+      ? `${resolveBaseUrl([order?.site_url])}/products/${String(order.product_slug).replace(/^\/+/, '')}`
+      : 'Not available';
+
+    const formattedAmount =
+      typeof payment.amount === 'number'
+        ? `${((payment.amount || 0) / 100).toFixed(2)} ${(payment.currency || 'USD').toUpperCase()}`
+        : `${order.product_price || 'Not provided'}`;
+
+    const mailOptions = {
+      from: emailUser,
+      to: 'contacthappydeel@gmail.com',
+      subject: `Stripe Payment Confirmed - ${order.product_title}`,
+      html: `
+        <h2>Stripe Payment Confirmed</h2>
+
+        <h3>Order Details</h3>
+        <ul>
+          <li><strong>Order ID:</strong> ${order.id}</li>
+          <li><strong>Product:</strong> ${order.product_title}</li>
+          <li><strong>Product URL:</strong> ${productUrl}</li>
+          <li><strong>Order Amount:</strong> ${order.product_price}</li>
+          <li><strong>Order Flow:</strong> ${order.checkout_flow || 'Not specified'}</li>
+        </ul>
+
+        <h3>Stripe Details</h3>
+        <ul>
+          <li><strong>Payment Intent ID:</strong> ${payment.paymentIntentId || order.stripe_payment_intent_id || 'Not provided'}</li>
+          <li><strong>Payment Status:</strong> ${order.stripe_payment_status || 'succeeded'}</li>
+          <li><strong>Captured Amount:</strong> ${formattedAmount}</li>
+          <li><strong>Customer Email:</strong> ${order.customer_email || 'Not provided'}</li>
+        </ul>
+
+        <h3>Shipping Address</h3>
+        <ul>
+          <li><strong>Email:</strong> ${order.customer_email}</li>
+          <li><strong>Street Address:</strong> ${order.shipping_address}</li>
+          ${extendedShipping.addressLine2 ? `<li><strong>Apartment / Unit:</strong> ${extendedShipping.addressLine2}</li>` : ''}
+          <li><strong>City:</strong> ${order.shipping_city}</li>
+          <li><strong>State/Province:</strong> ${order.shipping_state}</li>
+          <li><strong>Zip Code:</strong> ${order.shipping_zip}</li>
+          ${extendedShipping.country ? `<li><strong>Country:</strong> ${extendedShipping.country}</li>` : ''}
+        </ul>
+
+        <p><strong>Order Date:</strong> ${new Date(order.created_at).toLocaleString()}</p>
+        <p><strong>Payment Confirmed:</strong> ${new Date().toLocaleString()}</p>
+      `,
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`✅ Stripe payment notification sent successfully for order ${order.id}:`, info.messageId);
+
+    await supabaseAdmin
+      .from('orders')
+      .update({
+        full_order_data: {
+          ...fullOrderData,
+          stripe_email_sent: true,
+          stripe_email_sent_at: new Date().toISOString(),
+        },
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', order.id);
+
+    return { success: true };
+  } catch (error) {
+    const err = error as Error;
+    const errorMessage = err.message || 'Unknown error';
+    console.error(`❌ Failed to send Stripe payment notification for order ${order.id}:`, errorMessage);
+    return { success: false, error: errorMessage };
+  }
+}
+
+/**
  * Send a dedicated PayPal payment success notification after IPN confirmation.
  * This is separate from the checkout-intent email and should only fire after PayPal confirms payment.
  */

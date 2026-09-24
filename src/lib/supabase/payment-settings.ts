@@ -3,6 +3,7 @@ import { supabaseAdmin } from './server';
 export interface StripeConfig {
     publishableKey: string;
     secretKey: string;
+    webhookSecret?: string;
     mode: 'live' | 'test';
     isActive: boolean;
 }
@@ -43,6 +44,7 @@ export async function getStripeConfig(): Promise<StripeConfig> {
             cachedConfig = {
                 publishableKey: data.publishable_key,
                 secretKey: data.secret_key,
+                webhookSecret: process.env.STRIPE_WEBHOOK_SECRET || '',
                 mode: data.mode as 'live' | 'test',
                 isActive: data.is_active
             };
@@ -64,6 +66,7 @@ export async function getStripeConfig(): Promise<StripeConfig> {
     const fallbackConfig: StripeConfig = {
         publishableKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '',
         secretKey: process.env.STRIPE_SECRET_KEY || '',
+        webhookSecret: process.env.STRIPE_WEBHOOK_SECRET || '',
         mode: process.env.NODE_ENV === 'production' ? 'live' : 'test',
         isActive: !!process.env.STRIPE_SECRET_KEY
     };

@@ -4,11 +4,12 @@ import { useState } from 'react';
 import type { FormEventHandler, MouseEvent, ReactNode } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowLeft, ChevronDown, Globe2, Mail, Store, Trash, User } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, ChevronDown, Globe2, Mail, Store, Trash, User } from 'lucide-react';
 import CheckoutNotifier from '@/components/CheckoutNotifier';
 import CountrySelect from '@/components/CountrySelect';
 import PaypalApiRedirectButton from '@/components/PaypalApiRedirectButton';
 import PaypalRedirectButton from '@/components/PaypalRedirectButton';
+import StripeElementsCheckout from '@/components/StripeElementsCheckout';
 import type { CartItem } from '@/utils/cart';
 import type { CheckoutFormController } from './useCheckoutForm';
 import type { PaypalApiInitializationResult, PaypalPaymentInitializationResult } from './types';
@@ -25,7 +26,20 @@ interface CheckoutShippingStepProps {
   onPaypalApiBeforePayment: () => Promise<PaypalApiInitializationResult>;
   onClearCart: () => void;
   onDismissCheckoutError: () => void;
+  stripeClientSecret?: string | null;
+  isStripeAddressVerified?: boolean;
+  onLockedStripePaymentAttempt?: () => void;
+  onStripePaymentError?: (message: string) => void;
 }
+
+const PAYMENT_LOGOS = [
+  { src: '/payment-logos/visa.svg', alt: 'Visa', width: 46, height: 30 },
+  { src: '/payment-logos/mastercard.svg', alt: 'Mastercard', width: 46, height: 30 },
+  { src: '/payment-logos/american-express.svg', alt: 'American Express', width: 46, height: 30 },
+  { src: '/payment-logos/discover.svg', alt: 'Discover', width: 46, height: 30 },
+  { src: '/payment-logos/apple-pay.svg', alt: 'Apple Pay', width: 54, height: 30 },
+  { src: '/payment-logos/google-pay.svg', alt: 'Google Pay', width: 58, height: 30 },
+];
 
 interface MobileCheckoutCTAProps {
   onClick?: (event: MouseEvent) => void;
@@ -61,10 +75,10 @@ function MobileCheckoutCTA({
         type={onClick ? 'button' : 'submit'}
         onClick={onClick}
         disabled={disabled}
-        className={`w-full font-bold py-4 px-6 rounded-xl transition-all duration-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-4 focus:ring-[#090A28] focus:ring-offset-2 text-lg sm:text-xl ${
+        className={`w-full font-bold py-4 px-6 rounded-xl transition-all duration-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-4 focus:ring-[#0b2a17] focus:ring-offset-2 text-lg sm:text-xl ${
           disabled
             ? 'bg-gray-400 cursor-not-allowed text-white'
-            : 'bg-[#090A28] hover:bg-[#1c2070] text-white active:scale-[0.98]'
+            : 'bg-[#0b2a17] hover:bg-[#3a7f4b] text-white active:scale-[0.98]'
         }`}
       >
         {isLoading ? (
@@ -114,7 +128,7 @@ function StateSuggestions({
             aria-selected={isSelected}
             tabIndex={isSelected ? 0 : -1}
             className={`w-full text-left p-3 hover:bg-blue-50 border-b border-gray-100 last:border-b-0 transition-colors duration-200 ${
-              isSelected ? 'bg-blue-50 text-[#090A28]' : 'text-[#262626]'
+              isSelected ? 'bg-blue-50 text-[#0b2a17]' : 'text-[#262626]'
             }`}
             onClick={() => form.handleStateSelect(suggestion)}
           >
@@ -134,9 +148,9 @@ function AddressFields({
   mobile?: boolean;
 }) {
   const inputRadius = mobile ? 'rounded-xl' : 'rounded-lg';
-  const inputClassName = `w-full px-4 py-4 border-2 border-gray-200 ${inputRadius} focus:outline-none focus:ring-2 focus:ring-[#090A28] focus:border-[#090A28] transition-all duration-300`;
+  const inputClassName = `w-full px-4 py-4 border-2 border-gray-200 ${inputRadius} focus:outline-none focus:ring-2 focus:ring-[#0b2a17] focus:border-[#0b2a17] transition-all duration-300`;
   const idSuffix = mobile ? '-mobile' : '-desktop';
-  const fieldId = (name: string) => form.requiresCountry ? `${name}${idSuffix}` : name;
+  const fieldId = (name: string) => `${name}${idSuffix}`;
 
   const countryField = form.requiresCountry ? (
     <div>
@@ -317,7 +331,7 @@ function AddressFields({
             : `w-full px-4 py-4 border-2 rounded-lg focus:outline-none focus:ring-2 transition-all duration-300 ${
                 form.emailError
                   ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
-                  : 'border-gray-200 focus:ring-[#090A28] focus:border-[#090A28]'
+                  : 'border-gray-200 focus:ring-[#0b2a17] focus:border-[#0b2a17]'
               }`
         }
         placeholder="Enter your email address"
@@ -363,9 +377,13 @@ function AddressFields({
 function ContinueButton({
   isSendingEmail,
   isRedirecting,
+  label = 'Continue to Payment',
+  loadingLabel,
 }: {
   isSendingEmail: boolean;
   isRedirecting: boolean;
+  label?: string;
+  loadingLabel?: string;
 }) {
   const isBusy = isSendingEmail || isRedirecting;
 
@@ -374,21 +392,41 @@ function ContinueButton({
       type="submit"
       onClick={() => console.log('🔘 [Checkout] Submit button clicked (desktop)')}
       disabled={isBusy}
-      className={`w-full font-bold py-5 px-8 rounded-xl transition-colors duration-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed text-white focus:outline-none focus:ring-4 focus:ring-[#090A28] focus:ring-offset-2 text-xl ${
-        isBusy ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#090A28] hover:bg-[#1c2070]'
+      className={`w-full font-bold py-5 px-8 rounded-xl transition-colors duration-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed text-white focus:outline-none focus:ring-4 focus:ring-[#0b2a17] focus:ring-offset-2 text-xl ${
+        isBusy ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#0b2a17] hover:bg-[#3a7f4b]'
       }`}
     >
       {isBusy ? (
         <>
           <div className="animate-spin rounded-full h-6 w-6 border-b-3 border-white mr-3" />
           <span className="text-xl font-bold">
-            {isSendingEmail ? 'Confirming Address...' : 'Redirecting...'}
+            {isSendingEmail ? (loadingLabel || 'Confirming Address...') : 'Redirecting...'}
           </span>
         </>
       ) : (
-        <span className="text-xl font-bold">Continue to Payment</span>
+        <span className="text-xl font-bold">{label}</span>
       )}
     </button>
+  );
+}
+
+function AddressVerifiedNotice({ mobile = false }: { mobile?: boolean }) {
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      className={`flex items-start gap-3 rounded-xl border border-[#0b2a17]/15 bg-[#f6f3e8] ${mobile ? 'p-4' : 'p-4'} text-[#0b2a17] shadow-[0_1px_0_rgba(11,42,23,0.04)]`}
+    >
+      <span className="mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-[#0b2a17] text-[#f6f3e8]">
+        <CheckCircle2 className="h-4 w-4" strokeWidth={2.5} />
+      </span>
+      <div>
+        <p className="text-sm font-bold tracking-[-0.01em]">Delivery address confirmed</p>
+        <p className="mt-0.5 text-sm font-medium leading-5 text-[#0b2a17]/75">
+          Your shipping details are saved. Complete secure payment now to reserve your order.
+        </p>
+      </div>
+    </div>
   );
 }
 
@@ -396,33 +434,37 @@ function SecureCheckoutInfo({ mobile = false }: { mobile?: boolean }) {
   return (
     <div className={`${mobile ? 'lg:hidden mt-4 mb-4 space-y-2' : 'hidden lg:block mt-8 space-y-4'} flex flex-col items-center justify-center text-center w-full`}>
       <div className="text-sm text-gray-600">
-        <span className="font-medium text-[#090A28]">Secure Checkout</span> - SSL Encrypted
+        <span className="font-medium text-[#0b2a17]">Secure payment</span>
       </div>
-      <p className="text-xs text-gray-500 max-w-sm">
-        Shop with confidence - Your payment information is protected by industry-leading encryption
+      <p className="text-xs text-gray-500 max-w-sm mx-auto text-center">
+        Your payment details stay encrypted and private.
       </p>
-      <div className="flex items-center justify-center">
-        <Image
-          src="/secure-checkout.png"
-          alt="Secure Checkout"
-          width={192}
-          height={192}
-          className="h-12 w-auto"
-          quality={100}
-          priority
-          style={{ imageRendering: 'crisp-edges' }}
-        />
+      <div className="mx-auto flex w-full max-w-[30rem] flex-wrap items-center justify-center gap-2 px-2">
+        {PAYMENT_LOGOS.map((logo) => (
+          <span
+            key={logo.src}
+            className="flex h-8 min-w-[3.25rem] items-center justify-center rounded-lg border border-[#0b2a17]/10 bg-white px-2 shadow-[0_1px_2px_rgba(11,42,23,0.06)]"
+          >
+            <Image
+              src={logo.src}
+              alt={logo.alt}
+              width={logo.width}
+              height={logo.height}
+              className="max-h-5 w-auto object-contain"
+            />
+          </span>
+        ))}
       </div>
       <div className={`flex flex-wrap items-center justify-center text-xs text-gray-500 mt-2 ${mobile ? 'gap-2 px-4' : 'gap-3'}`}>
-        <Link href="/terms" className="hover:text-[#090A28] hover:underline transition-colors">
+        <Link href="/terms" className="hover:text-[#0b2a17] hover:underline transition-colors">
           Terms of Service
         </Link>
         <span className="text-gray-300">•</span>
-        <Link href="/return-policy" className="hover:text-[#090A28] hover:underline transition-colors">
+        <Link href="/return-policy" className="hover:text-[#0b2a17] hover:underline transition-colors">
           Refund and Return Policy
         </Link>
         <span className="text-gray-300">•</span>
-        <Link href="/shipping-policy" className="hover:text-[#090A28] hover:underline transition-colors">
+        <Link href="/shipping-policy" className="hover:text-[#0b2a17] hover:underline transition-colors">
           Shipping Policy
         </Link>
       </div>
@@ -460,17 +502,22 @@ export default function CheckoutShippingStep({
   onPaypalApiBeforePayment,
   onClearCart,
   onDismissCheckoutError,
+  stripeClientSecret,
+  isStripeAddressVerified = false,
+  onLockedStripePaymentAttempt = () => {},
+  onStripePaymentError,
 }: CheckoutShippingStepProps) {
   const [showMobileOrderSummary, setShowMobileOrderSummary] = useState(false);
   const { product } = cartItem;
   const price = formatPrice(cartItem, product.price);
+  const isStripeFlow = product.checkoutFlow === 'stripe';
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 pb-40 lg:pb-4">
       <CheckoutNotifier />
       <main className="flex-grow py-4">
         <div className="container mx-auto px-4">
-          <Link href={`/products/${product.slug}`} className="inline-flex items-center text-[#090A28] hover:text-[#1c2070] mb-4 text-sm">
+          <Link href={`/products/${product.slug}`} className="inline-flex items-center text-[#0b2a17] hover:text-[#3a7f4b] mb-4 text-sm">
             <ArrowLeft className="h-3.5 w-3.5 mr-1.5" />
             <span className="hidden sm:inline">Back To Product</span>
             <span className="sm:hidden">Back</span>
@@ -500,7 +547,7 @@ export default function CheckoutShippingStep({
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="font-semibold text-[#262626] text-base line-clamp-1 mb-1">{product.title}</h3>
-                    <p className="text-[#090A28] font-bold text-xl mb-1">{price}</p>
+                    <p className="text-[#0b2a17] font-bold text-xl mb-1">{price}</p>
                     {sellerName && (
                       <p className="mb-1 flex min-w-0 items-center gap-1.5 text-sm text-gray-600" aria-label={`Seller: ${sellerName}`}>
                         <Store className="h-4 w-4 shrink-0 text-[#262626]" aria-hidden="true" />
@@ -525,11 +572,11 @@ export default function CheckoutShippingStep({
                   </div>
                   <div className="flex justify-between items-center text-sm">
                     <span className="text-gray-600">Shipping</span>
-                    <span className="font-medium text-[#090A28]">Free</span>
+                    <span className="font-medium text-[#0b2a17]">Free</span>
                   </div>
                   <div className="border-t border-gray-200 pt-3 flex justify-between items-center">
                     <span className="text-base font-semibold text-[#262626]">Total</span>
-                    <span className="text-lg font-bold text-[#090A28]">{price}</span>
+                    <span className="text-lg font-bold text-[#0b2a17]">{price}</span>
                   </div>
                 </div>
               )}
@@ -543,6 +590,15 @@ export default function CheckoutShippingStep({
                   <h2 className="text-xl lg:text-2xl font-bold text-[#262626] mb-6 lg:mb-8 text-left">Delivery Address</h2>
                   <form onSubmit={onSubmit} className="space-y-6">
                     <AddressFields form={form} />
+                    {checkoutError && (
+                      <div role="alert" className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+                        <p>{checkoutError}</p>
+                        <button type="button" onClick={onDismissCheckoutError} className="mt-1 text-xs underline">
+                          Dismiss
+                        </button>
+                      </div>
+                    )}
+                    {isStripeFlow && isStripeAddressVerified && <AddressVerifiedNotice />}
                     <div className="hidden lg:block mt-8">
                       {product.checkoutFlow === 'paypal-direct' ? (
                         <PaypalRedirectButton
@@ -556,7 +612,12 @@ export default function CheckoutShippingStep({
                           disabled={isSendingEmail || !form.isFormValid}
                         />
                       ) : (
-                        <ContinueButton isSendingEmail={isSendingEmail} isRedirecting={isRedirecting} />
+                        <ContinueButton
+                          isSendingEmail={isSendingEmail}
+                          isRedirecting={isRedirecting}
+                          label={isStripeFlow ? 'Save delivery address' : 'Continue to Payment'}
+                          loadingLabel={isStripeFlow ? 'Saving delivery address...' : undefined}
+                        />
                       )}
                     </div>
                   </form>
@@ -602,7 +663,7 @@ export default function CheckoutShippingStep({
                           {product.condition}
                         </span>
                         {(product as ProductWithSelectedSize).selectedSize && (
-                          <span className="bg-[#090A28]/8 text-[#090A28] text-xs font-semibold px-2.5 py-1 rounded-full">
+                          <span className="bg-[#0b2a17]/8 text-[#0b2a17] text-xs font-semibold px-2.5 py-1 rounded-full">
                             Size: {(product as ProductWithSelectedSize).selectedSize}
                           </span>
                         )}
@@ -615,7 +676,7 @@ export default function CheckoutShippingStep({
 
                   {/* Price + remove */}
                   <div className="px-6 pb-5 flex items-center justify-between">
-                    <span className="text-xl font-bold text-[#090A28]">{price}</span>
+                    <span className="text-xl font-bold text-[#0b2a17]">{price}</span>
                     <button
                       type="button"
                       onClick={onClearCart}
@@ -639,9 +700,21 @@ export default function CheckoutShippingStep({
                     </div>
                     <div className="border-t border-gray-100 pt-3 flex justify-between items-center">
                       <span className="text-sm font-semibold text-[#262626]">Total</span>
-                      <span className="text-lg font-bold text-[#090A28]">{price}</span>
+                      <span className="text-lg font-bold text-[#0b2a17]">{price}</span>
                     </div>
                   </div>
+
+                  {isStripeFlow && stripeClientSecret && (
+                    <div className="border-t border-gray-100 px-6 py-5">
+                      <StripeElementsCheckout
+                        clientSecret={stripeClientSecret}
+                        isAddressVerified={isStripeAddressVerified}
+                        shippingData={form.shippingData}
+                        onLockedPaymentAttempt={onLockedStripePaymentAttempt}
+                        onPaymentError={onStripePaymentError}
+                      />
+                    </div>
+                  )}
 
                 </div>
               </div>
@@ -649,7 +722,7 @@ export default function CheckoutShippingStep({
           </div>
 
           <div className="lg:hidden">
-            <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
+            <div className="bg-white rounded-2xl shadow-sm px-4 py-6 border border-gray-100">
               <h2 className="text-xl font-bold text-[#262626] mb-6">Delivery Address</h2>
               <form onSubmit={onSubmit} className="space-y-6">
                 <AddressFields form={form} mobile />
@@ -668,7 +741,32 @@ export default function CheckoutShippingStep({
                   </div>
                 )}
 
-                {product.checkoutFlow !== 'paypal-direct' && product.checkoutFlow !== 'paypal-api' && (
+                {isStripeFlow && isStripeAddressVerified && <AddressVerifiedNotice mobile />}
+
+                {isStripeFlow && (
+                  <div className="space-y-4">
+                    <ContinueButton
+                      isSendingEmail={isSendingEmail}
+                      isRedirecting={isRedirecting}
+                      label="Save delivery address"
+                      loadingLabel="Saving delivery address..."
+                    />
+                    {stripeClientSecret && (
+                      <div className="-mx-4 sm:mx-0">
+                        <StripeElementsCheckout
+                          clientSecret={stripeClientSecret}
+                          isAddressVerified={isStripeAddressVerified}
+                          shippingData={form.shippingData}
+                          onLockedPaymentAttempt={onLockedStripePaymentAttempt}
+                          onPaymentError={onStripePaymentError}
+                          compact
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {!isStripeFlow && product.checkoutFlow !== 'paypal-direct' && product.checkoutFlow !== 'paypal-api' && (
                   <MobileCheckoutCTA
                     disabled={isSendingEmail || isRedirecting}
                     isLoading={isSendingEmail || isRedirecting}
